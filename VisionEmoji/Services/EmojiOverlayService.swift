@@ -72,7 +72,16 @@ class EmojiOverlayService: ObservableObject {
     
     private func calculateVelocity(overlay: EmojiOverlay) -> CGPoint {
         // Simple velocity calculation based on position changes
-        return CGPoint(x: 0, y: 0) // Simplified for now
+        let currentTime = Date()
+        let timeInterval = currentTime.timeIntervalSince(overlay.trackingData.lastSeen)
+        
+        guard timeInterval > 0 else { return .zero }
+        
+        // Calculate raw velocity
+        let dx = (overlay.position.x - overlay.trackingData.boundingBox.midX) / CGFloat(timeInterval)
+        let dy = (overlay.position.y - overlay.trackingData.boundingBox.midY) / CGFloat(timeInterval)
+        
+        return CGPoint(x: dx, y: dy)
     }
     
     private func normalizeBoundingBox(_ boundingBox: CGRect, to viewSize: CGSize) -> CGRect {

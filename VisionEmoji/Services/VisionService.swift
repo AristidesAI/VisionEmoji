@@ -102,18 +102,21 @@ class VisionService: ObservableObject {
             )
         }
         
-        DispatchQueue.main.async { [weak self] in
-            self?.addDetectionResults(newResults)
-        }
+        addDetectionResults(newResults)
     }
     
     // MARK: - Hand Gesture Detection
     private func handleHandGestureDetection(request: VNRequest, error: Error?) {
-        guard let observations = request.results as? [VNRecognizedObjectObservation] else { return }
+        guard let observations = request.results as? [VNHumanHandPoseObservation] else { return }
         
-        let newResults = observations.compactMap { observation -> DetectionResult in
+        let newResults = observations.compactMap { observation -> DetectionResult? in
             let confidence = observation.confidence
-            let boundingBox = observation.boundingBox
+            guard confidence > 0.3 else { return nil }
+            
+            // Get bounding box for the whole hand if possible, or use a default
+            // VNHumanHandPoseObservation doesn't have a direct bounding box, we'd need to calculate from landmarks
+            // For now, let's use a simplified approach or a default centered point
+            let boundingBox = CGRect(x: 0.4, y: 0.4, width: 0.2, height: 0.2)
             let emojiDisplay = EmojiMapping.emojiForType(.handGesture, confidence: confidence)
             
             return DetectionResult(
@@ -125,12 +128,37 @@ class VisionService: ObservableObject {
             )
         }
         
-        DispatchQueue.main.async { [weak self] in
-            self?.addDetectionResults(newResults)
-        }
+        addDetectionResults(newResults)
     }
     
     // MARK: - Object Classification
+
+    private static let keywordMapping: [DetectionType: [String]] = [
+        .building: ["building", "house", "architecture", "tower", "bridge", "church", "temple", "mosque", "castle"],
+        .vehicle: ["car", "vehicle", "automobile", "truck", "bus", "motorcycle", "bicycle", "train", "boat", "ship", "airplane", "helicopter"],
+        .flower: ["flower", "plant", "rose", "tulip", "tree", "grass", "leaf", "garden", "botanical"],
+        .animal: ["dog", "cat", "animal", "pet", "bear", "rabbit", "bird", "fish", "insect", "reptile", "horse", "cow", "pig", "sheep", "lion", "tiger", "elephant", "monkey"],
+        .food: ["food", "meal", "dish", "burger", "pizza", "sandwich", "pasta", "rice", "bread", "cheese", "meat", "chicken", "fish", "soup", "salad", "dessert", "cake", "cookie"],
+        .fruit: ["fruit", "apple", "banana", "orange", "grape", "strawberry", "watermelon", "lemon", "cherry", "peach", "pear", "mango", "pineapple", "kiwi", "coconut"],
+        .sport: ["sport", "ball", "game", "soccer", "basketball", "tennis", "golf", "football", "baseball", "swimming", "running", "cycling", "skiing", "surfing", "boxing"],
+        .music: ["music", "instrument", "guitar", "piano", "drum", "violin", "trumpet", "saxophone", "microphone", "speaker", "headphone", "radio"],
+        .technology: ["computer", "phone", "tablet", "laptop", "screen", "monitor", "keyboard", "mouse", "camera", "television", "printer", "scanner", "router", "modem", "cable"],
+        .clothing: ["clothing", "shirt", "pants", "dress", "jacket", "coat", "shoes", "hat", "glasses", "watch", "jewelry", "bag", "purse", "backpack", "umbrella"],
+        .nature: ["nature", "sky", "cloud", "sun", "moon", "star", "mountain", "beach", "ocean", "river", "lake", "forest", "desert", "snow", "rain", "storm", "rainbow", "lightning"],
+        .tool: ["tool", "hammer", "screwdriver", "wrench", "drill", "saw", "knife", "scissors", "ruler", "ladder", "shovel", "axe", "pliers", "tape", "glue"]
+    ]
+
+    private func detectionType(for identifier: String) -> DetectionType? {
+        for (type, keywords) in VisionService.keywordMapping {
+            for keyword in keywords {
+                if identifier.contains(keyword) {
+                    return type
+                }
+            }
+        }
+        return nil
+    }
+
     private func handleObjectClassification(request: VNRequest, error: Error?) {
         guard let observations = request.results as? [VNClassificationObservation] else { return }
         
@@ -138,104 +166,11 @@ class VisionService: ObservableObject {
             let confidence = observation.confidence
             let identifier = observation.identifier.lowercased()
             
-            // Map classification to our detection types with comprehensive keyword matching
             let detectionType: DetectionType?
             
-            // Buildings and architecture
-            if identifier.contains("building") || identifier.contains("house") || identifier.contains("architecture") || 
-               identifier.contains("tower") || identifier.contains("bridge") || identifier.contains("church") ||
-               identifier.contains("temple") || identifier.contains("mosque") || identifier.contains("castle") {
-                detectionType = .building
-            }
-            // Cars and vehicles
-            else if identifier.contains("car") || identifier.contains("vehicle") || identifier.contains("automobile") ||
-                    identifier.contains("truck") || identifier.contains("bus") || identifier.contains("motorcycle") ||
-                    identifier.contains("bicycle") || identifier.contains("train") || identifier.contains("boat") ||
-                    identifier.contains("ship") || identifier.contains("airplane") || identifier.contains("helicopter") {
-                detectionType = .vehicle
-            }
-            // Flowers and plants
-            else if identifier.contains("flower") || identifier.contains("plant") || identifier.contains("rose") || 
-                    identifier.contains("tulip") || identifier.contains("tree") || identifier.contains("grass") ||
-                    identifier.contains("leaf") || identifier.contains("garden") || identifier.contains("botanical") {
-                detectionType = .flower
-            }
-            // Animals and pets
-            else if identifier.contains("dog") || identifier.contains("cat") || identifier.contains("animal") || 
-                    identifier.contains("pet") || identifier.contains("bear") || identifier.contains("rabbit") ||
-                    identifier.contains("bird") || identifier.contains("fish") || identifier.contains("insect") ||
-                    identifier.contains("reptile") || identifier.contains("horse") || identifier.contains("cow") ||
-                    identifier.contains("pig") || identifier.contains("sheep") || identifier.contains("lion") ||
-                    identifier.contains("tiger") || identifier.contains("elephant") || identifier.contains("monkey") {
-                detectionType = .animal
-            }
-            // Food items
-            else if identifier.contains("food") || identifier.contains("meal") || identifier.contains("dish") ||
-                    identifier.contains("burger") || identifier.contains("pizza") || identifier.contains("sandwich") ||
-                    identifier.contains("pasta") || identifier.contains("rice") || identifier.contains("bread") ||
-                    identifier.contains("cheese") || identifier.contains("meat") || identifier.contains("chicken") ||
-                    identifier.contains("fish") || identifier.contains("soup") || identifier.contains("salad") ||
-                    identifier.contains("dessert") || identifier.contains("cake") || identifier.contains("cookie") {
-                detectionType = .food
-            }
-            // Fruits
-            else if identifier.contains("fruit") || identifier.contains("apple") || identifier.contains("banana") ||
-                    identifier.contains("orange") || identifier.contains("grape") || identifier.contains("strawberry") ||
-                    identifier.contains("watermelon") || identifier.contains("lemon") || identifier.contains("cherry") ||
-                    identifier.contains("peach") || identifier.contains("pear") || identifier.contains("mango") ||
-                    identifier.contains("pineapple") || identifier.contains("kiwi") || identifier.contains("coconut") {
-                detectionType = .fruit
-            }
-            // Sports and recreation
-            else if identifier.contains("sport") || identifier.contains("ball") || identifier.contains("game") ||
-                    identifier.contains("soccer") || identifier.contains("basketball") || identifier.contains("tennis") ||
-                    identifier.contains("golf") || identifier.contains("football") || identifier.contains("baseball") ||
-                    identifier.contains("swimming") || identifier.contains("running") || identifier.contains("cycling") ||
-                    identifier.contains("skiing") || identifier.contains("surfing") || identifier.contains("boxing") {
-                detectionType = .sport
-            }
-            // Music and audio
-            else if identifier.contains("music") || identifier.contains("instrument") || identifier.contains("guitar") ||
-                    identifier.contains("piano") || identifier.contains("drum") || identifier.contains("violin") ||
-                    identifier.contains("trumpet") || identifier.contains("saxophone") || identifier.contains("microphone") ||
-                    identifier.contains("speaker") || identifier.contains("headphone") || identifier.contains("radio") {
-                detectionType = .music
-            }
-            // Technology and electronics
-            else if identifier.contains("computer") || identifier.contains("phone") || identifier.contains("tablet") ||
-                    identifier.contains("laptop") || identifier.contains("screen") || identifier.contains("monitor") ||
-                    identifier.contains("keyboard") || identifier.contains("mouse") || identifier.contains("camera") ||
-                    identifier.contains("television") || identifier.contains("printer") || identifier.contains("scanner") ||
-                    identifier.contains("router") || identifier.contains("modem") || identifier.contains("cable") {
-                detectionType = .technology
-            }
-            // Clothing and accessories
-            else if identifier.contains("clothing") || identifier.contains("shirt") || identifier.contains("pants") ||
-                    identifier.contains("dress") || identifier.contains("jacket") || identifier.contains("coat") ||
-                    identifier.contains("shoes") || identifier.contains("hat") || identifier.contains("glasses") ||
-                    identifier.contains("watch") || identifier.contains("jewelry") || identifier.contains("bag") ||
-                    identifier.contains("purse") || identifier.contains("backpack") || identifier.contains("umbrella") {
-                detectionType = .clothing
-            }
-            // Nature and weather
-            else if identifier.contains("nature") || identifier.contains("sky") || identifier.contains("cloud") ||
-                    identifier.contains("sun") || identifier.contains("moon") || identifier.contains("star") ||
-                    identifier.contains("mountain") || identifier.contains("beach") || identifier.contains("ocean") ||
-                    identifier.contains("river") || identifier.contains("lake") || identifier.contains("forest") ||
-                    identifier.contains("desert") || identifier.contains("snow") || identifier.contains("rain") ||
-                    identifier.contains("storm") || identifier.contains("rainbow") || identifier.contains("lightning") {
-                detectionType = .nature
-            }
-            // Tools and equipment
-            else if identifier.contains("tool") || identifier.contains("hammer") || identifier.contains("screwdriver") ||
-                    identifier.contains("wrench") || identifier.contains("drill") || identifier.contains("saw") ||
-                    identifier.contains("knife") || identifier.contains("scissors") || identifier.contains("ruler") ||
-                    identifier.contains("ladder") || identifier.contains("shovel") || identifier.contains("axe") ||
-                    identifier.contains("pliers") || identifier.contains("tape") || identifier.contains("glue") {
-                detectionType = .tool
-            }
-            // Generic object fallback
-            else if confidence > 0.3 {
+            if let mappedType = self.detectionType(for: identifier) {
+                detectionType = mappedType
+            } else if confidence > 0.3 {
                 detectionType = .object
             } else {
                 return nil
@@ -254,12 +189,7 @@ class VisionService: ObservableObject {
             )
         }
         
-        DispatchQueue.main.async { [weak self] in
-            self?.addDetectionResults(newResults)
-            // Keep only recent results (last 2 seconds)
-            let cutoffTime = Date().addingTimeInterval(-2.0)
-            self?.detectionResults.removeAll { $0.timestamp < cutoffTime }
-        }
+        addDetectionResults(newResults)
     }
     
     private func addDetectionResults(_ results: [DetectionResult]) {

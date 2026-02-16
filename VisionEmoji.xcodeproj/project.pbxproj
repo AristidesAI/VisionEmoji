@@ -6,17 +6,39 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		DF2C776F2F43335D00F1F0E7 /* VisionEmojiApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = DF2C77702F43335D00F1F0E7 /* VisionEmojiApp.swift */; };
+		DF2C77712F43335D00F1F0E7 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DF2C77722F43335D00F1F0E7 /* ContentView.swift */; };
+		DF2C77732F43335D00F1F0E7 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = DF2C77742F43335D00F1F0E7 /* Assets.xcassets */; };
+		DF2C77802F43335D00F1F0E7 /* CameraService.swift in Sources */ = {isa = PBXBuildFile; fileRef = DF2C77812F43335D00F1F0E7 /* CameraService.swift */; };
+		DF2C77822F43335D00F1F0E7 /* VisionService.swift in Sources */ = {isa = PBXBuildFile; fileRef = DF2C77832F43335D00F1F0E7 /* VisionService.swift */; };
+		DF2C77842F43335D00F1F0E7 /* EmojiOverlayService.swift in Sources */ = {isa = PBXBuildFile; fileRef = DF2C77852F43335D00F1F0E7 /* EmojiOverlayService.swift */; };
+		DF2C77862F43335D00F1F0E7 /* EmojiAssetService.swift in Sources */ = {isa = PBXBuildFile; fileRef = DF2C77872F43335D00F1F0E7 /* EmojiAssetService.swift */; };
+		DF2C77882F43335D00F1F0E7 /* DetectionResult.swift in Sources */ = {isa = PBXBuildFile; fileRef = DF2C77892F43335D00F1F0E7 /* DetectionResult.swift */; };
+		DF2C778A2F43335D00F1F0E7 /* CameraView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DF2C778B2F43335D00F1F0E7 /* CameraView.swift */; };
+		DF2C778C2F43335D00F1F0E7 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DF2C778D2F43335D00F1F0E7 /* SettingsView.swift */; };
+		DF2C778E2F43335D00F1F0E7 /* AnimatedEmojiView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DF2C778F2F43335D00F1F0E7 /* AnimatedEmojiView.swift */; };
+		DF2C77902F43335D00F1F0E7 /* PermissionRequestView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DF2C77912F43335D00F1F0E7 /* PermissionRequestView.swift */; };
+		DF2C77922F43335D00F1F0E7 /* GlassEffectContainer.swift in Sources */ = {isa = PBXBuildFile; fileRef = DF2C77932F43335D00F1F0E7 /* GlassEffectContainer.swift */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXFileReference section */
 		DF2C77612F43335C00F1F0E7 /* VisionEmoji.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = VisionEmoji.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		DF2C77702F43335D00F1F0E7 /* VisionEmojiApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VisionEmojiApp.swift; sourceTree = "<group>"; };
+		DF2C77722F43335D00F1F0E7 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		DF2C77742F43335D00F1F0E7 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		DF2C77762F43335D00F1F0E7 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		DF2C77812F43335D00F1F0E7 /* CameraService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraService.swift; sourceTree = "<group>"; };
+		DF2C77832F43335D00F1F0E7 /* VisionService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VisionService.swift; sourceTree = "<group>"; };
+		DF2C77852F43335D00F1F0E7 /* EmojiOverlayService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmojiOverlayService.swift; sourceTree = "<group>"; };
+		DF2C77872F43335D00F1F0E7 /* EmojiAssetService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmojiAssetService.swift; sourceTree = "<group>"; };
+		DF2C77892F43335D00F1F0E7 /* DetectionResult.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DetectionResult.swift; sourceTree = "<group>"; };
+		DF2C778B2F43335D00F1F0E7 /* CameraView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraView.swift; sourceTree = "<group>"; };
+		DF2C778D2F43335D00F1F0E7 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
+		DF2C778F2F43335D00F1F0E7 /* AnimatedEmojiView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnimatedEmojiView.swift; sourceTree = "<group>"; };
+		DF2C77912F43335D00F1F0E7 /* PermissionRequestView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PermissionRequestView.swift; sourceTree = "<group>"; };
+		DF2C77932F43335D00F1F0E7 /* GlassEffectContainer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlassEffectContainer.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
-
-/* Begin PBXFileSystemSynchronizedRootGroup section */
-		DF2C77632F43335C00F1F0E7 /* VisionEmoji */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			path = VisionEmoji;
-			sourceTree = "<group>";
-		};
-/* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
 		DF2C775E2F43335C00F1F0E7 /* Frameworks */ = {
@@ -37,12 +59,57 @@
 			);
 			sourceTree = "<group>";
 		};
+		DF2C77632F43335C00F1F0E7 /* VisionEmoji */ = {
+			isa = PBXGroup;
+			children = (
+				DF2C77702F43335D00F1F0E7 /* VisionEmojiApp.swift */,
+				DF2C77722F43335D00F1F0E7 /* ContentView.swift */,
+				DF2C77742F43335D00F1F0E7 /* Assets.xcassets */,
+				DF2C77762F43335D00F1F0E7 /* Info.plist */,
+				DF2C77942F43335D00F1F0E7 /* Services */,
+				DF2C77952F43335D00F1F0E7 /* Views */,
+				DF2C77962F43335D00F1F0E7 /* Models */,
+			);
+			path = VisionEmoji;
+			sourceTree = "<group>";
+		};
 		DF2C77622F43335C00F1F0E7 /* Products */ = {
 			isa = PBXGroup;
 			children = (
 				DF2C77612F43335C00F1F0E7 /* VisionEmoji.app */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		DF2C77942F43335D00F1F0E7 /* Services */ = {
+			isa = PBXGroup;
+			children = (
+				DF2C77812F43335D00F1F0E7 /* CameraService.swift */,
+				DF2C77832F43335D00F1F0E7 /* VisionService.swift */,
+				DF2C77852F43335D00F1F0E7 /* EmojiOverlayService.swift */,
+				DF2C77872F43335D00F1F0E7 /* EmojiAssetService.swift */,
+			);
+			path = Services;
+			sourceTree = "<group>";
+		};
+		DF2C77952F43335D00F1F0E7 /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				DF2C778B2F43335D00F1F0E7 /* CameraView.swift */,
+				DF2C778D2F43335D00F1F0E7 /* SettingsView.swift */,
+				DF2C778F2F43335D00F1F0E7 /* AnimatedEmojiView.swift */,
+				DF2C77912F43335D00F1F0E7 /* PermissionRequestView.swift */,
+				DF2C77932F43335D00F1F0E7 /* GlassEffectContainer.swift */,
+			);
+			path = Views;
+			sourceTree = "<group>";
+		};
+		DF2C77962F43335D00F1F0E7 /* Models */ = {
+			isa = PBXGroup;
+			children = (
+				DF2C77892F43335D00F1F0E7 /* DetectionResult.swift */,
+			);
+			path = Models;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -59,9 +126,6 @@
 			buildRules = (
 			);
 			dependencies = (
-			);
-			fileSystemSynchronizedGroups = (
-				DF2C77632F43335C00F1F0E7 /* VisionEmoji */,
 			);
 			name = VisionEmoji;
 			packageProductDependencies = (
@@ -93,8 +157,6 @@
 				Base,
 			);
 			mainGroup = DF2C77582F43335B00F1F0E7;
-			minimizedProjectReferenceProxies = 1;
-			preferredProjectObjectVersion = 77;
 			productRefGroup = DF2C77622F43335C00F1F0E7 /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
@@ -109,6 +171,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				DF2C77732F43335D00F1F0E7 /* Assets.xcassets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -119,6 +182,18 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				DF2C776F2F43335D00F1F0E7 /* VisionEmojiApp.swift in Sources */,
+				DF2C77712F43335D00F1F0E7 /* ContentView.swift in Sources */,
+				DF2C77802F43335D00F1F0E7 /* CameraService.swift in Sources */,
+				DF2C77822F43335D00F1F0E7 /* VisionService.swift in Sources */,
+				DF2C77842F43335D00F1F0E7 /* EmojiOverlayService.swift in Sources */,
+				DF2C77862F43335D00F1F0E7 /* EmojiAssetService.swift in Sources */,
+				DF2C77882F43335D00F1F0E7 /* DetectionResult.swift in Sources */,
+				DF2C778A2F43335D00F1F0E7 /* CameraView.swift in Sources */,
+				DF2C778C2F43335D00F1F0E7 /* SettingsView.swift in Sources */,
+				DF2C778E2F43335D00F1F0E7 /* AnimatedEmojiView.swift in Sources */,
+				DF2C77902F43335D00F1F0E7 /* PermissionRequestView.swift in Sources */,
+				DF2C77922F43335D00F1F0E7 /* GlassEffectContainer.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -255,12 +330,13 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 8S7P33V94X;
 				ENABLE_PREVIEWS = YES;
-				GENERATE_INFOPLIST_FILE = YES;
+				EXECUTABLE_NAME = VisionEmoji;
+				INFOPLIST_FILE = VisionEmoji/Info.plist;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = UIInterfaceOrientationPortrait;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -269,12 +345,16 @@
 				PRODUCT_BUNDLE_IDENTIFIER = aristides.lintzeris.VisionEmoji;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
 				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
 				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
+				TARGETED_DEVICE_FAMILY = 1;
 			};
 			name = Debug;
 		};
@@ -287,12 +367,13 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 8S7P33V94X;
 				ENABLE_PREVIEWS = YES;
-				GENERATE_INFOPLIST_FILE = YES;
+				EXECUTABLE_NAME = VisionEmoji;
+				INFOPLIST_FILE = VisionEmoji/Info.plist;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = UIInterfaceOrientationPortrait;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -301,12 +382,16 @@
 				PRODUCT_BUNDLE_IDENTIFIER = aristides.lintzeris.VisionEmoji;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
 				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
 				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
+				TARGETED_DEVICE_FAMILY = 1;
 			};
 			name = Release;
 		};

@@ -28,7 +28,7 @@ struct SettingsView: View {
     @available(iOS 26, *)
     private var glassSettingsContent: some View {
         ScrollView {
-            GlassEffectContainer(spacing: 20) {
+            GlassEffectContainer {
                 VStack(spacing: 24) {
                     // Detection Settings Section
                     detectionSection
@@ -264,7 +264,7 @@ struct SettingsView: View {
             VStack(spacing: 12) {
                 performanceRow("Frame Rate", value: "30 FPS")
                 performanceRow("Processing", value: visionService.isProcessing ? "Active" : "Idle")
-                performanceRow("Detections", "\(visionService.detectionResults.count)")
+                performanceRow("Detections", value: "\(visionService.detectionResults.count)")
             }
         }
     }
@@ -279,7 +279,7 @@ struct SettingsView: View {
             VStack(spacing: 12) {
                 performanceRowFallback("Frame Rate", value: "30 FPS")
                 performanceRowFallback("Processing", value: visionService.isProcessing ? "Active" : "Idle")
-                performanceRowFallback("Detections", "\(visionService.detectionResults.count)")
+                performanceRowFallback("Detections", value: "\(visionService.detectionResults.count)")
             }
         }
         .padding()
