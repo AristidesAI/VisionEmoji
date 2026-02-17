@@ -34,16 +34,15 @@ struct EmojiOverlayItem: View {
     @State private var isPulsing = false
 
     private var showBoxes: Bool {
-        settings.displayMode == .yolo || settings.displayMode == .debug || settings.showTrackingLayer
+        settings.displayMode == .debug || settings.showTrackingLayer
     }
 
     private var showEmoji: Bool {
-        settings.displayMode != .yolo
+        settings.displayMode == .emoji || settings.displayMode == .debug
     }
 
     var body: some View {
         ZStack(alignment: .topLeading) {
-            // Full rectangular bounding box (yolo/debug modes)
             if showBoxes {
                 Rectangle()
                     .stroke(Color(cgColor: overlay.detectionType.overlayColor), lineWidth: 2)
@@ -62,6 +61,18 @@ struct EmojiOverlayItem: View {
                 .background(Color(cgColor: overlay.detectionType.overlayColor).opacity(0.85))
                 .cornerRadius(3)
                 .offset(y: -20)
+
+                // Classification annotation badge (if available)
+                if let clsLabel = overlay.classificationLabel {
+                    Text(clsLabel)
+                        .font(.system(size: 9, weight: .medium))
+                        .foregroundColor(.cyan)
+                        .padding(.horizontal, 3)
+                        .padding(.vertical, 1)
+                        .background(Color.blue.opacity(0.7))
+                        .cornerRadius(2)
+                        .offset(y: overlay.boundingBoxSize.height + 2)
+                }
             }
 
             // Emoji centered in the bounding box
@@ -97,19 +108,6 @@ struct EmojiOverlayItem: View {
 
 #Preview {
     let sampleOverlays = [
-        EmojiOverlay(
-            id: UUID(),
-            emoji: "😄",
-            position: CGPoint(x: 100, y: 100),
-            size: CGSize(width: 80, height: 80),
-            boundingBoxSize: CGSize(width: 100, height: 120),
-            opacity: 1.0,
-            scale: 1.0,
-            detectionType: .face,
-            lastUpdated: Date(),
-            label: "face",
-            confidence: 0.92
-        ),
         EmojiOverlay(
             id: UUID(),
             emoji: "🚗",

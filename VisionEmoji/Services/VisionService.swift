@@ -10,91 +10,98 @@ import Vision
 import CoreML
 import AVFoundation
 import Combine
+import CoreImage
 
 @MainActor
 class VisionService: ObservableObject {
     // MARK: - Published Properties
+
     @Published var detectionResults: [DetectionResult] = []
     @Published var isProcessing = false
 
-    // Model selection — user can switch at runtime
-    @Published var selectedModel: YOLOModel = .yolo11n {
-        didSet {
-            if oldValue != selectedModel {
-                clearTrackedObjects()
-                ensureModelLoaded(selectedModel)
-            }
-        }
+    // Task toggle
+    @Published var isClassificationEnabled = true {
+        didSet { if isClassificationEnabled { ensureModelLoaded(task: .classify) } }
     }
 
     // Detection tuning
     @Published var confidenceThreshold: Float = 0.25
+    @Published var maxDetections: Int = 50
 
-    // Detection toggles
-    @Published var isFaceDetectionEnabled = true
-    @Published var isHandDetectionEnabled = false
-    @Published var isBodyDetectionEnabled = false
+    // Classification tuning
+    @Published var classificationConfidenceThreshold: Float = 0.3
+    @Published var labelPriority: Float = 0.5  // 0=YOLO, 1=ImageNet
+
+    // Processing controls
+    @Published var targetFPS: Int = 30
 
     // Performance metrics
     @Published var objectProcessingTime: Double = 0
-    @Published var faceProcessingTime: Double = 0
-    @Published var handProcessingTime: Double = 0
-    @Published var bodyProcessingTime: Double = 0
+    @Published var classifyProcessingTime: Double = 0
     @Published var fps: Double = 0
+    @Published var classificationsCached: Int = 0
 
     // MARK: - Private Properties
 
-    // Cached VNCoreMLModel instances (lazy-loaded per model)
-    nonisolated(unsafe) private var loadedModels: [YOLOModel: VNCoreMLModel] = [:]
+    // Cached VNCoreMLModel instances (lazy-loaded per task)
+    nonisolated(unsafe) private var loadedModels: [ModelKey: VNCoreMLModel] = [:]
     nonisolated(unsafe) private var modelLock = NSLock()
 
-    // Separate queues for parallel processing
-    nonisolated(unsafe) private let objectQueue = DispatchQueue(label: "com.visionemoji.object", qos: .userInitiated)
-    nonisolated(unsafe) private let faceQueue = DispatchQueue(label: "com.visionemoji.face", qos: .userInitiated)
-    nonisolated(unsafe) private let handQueue = DispatchQueue(label: "com.visionemoji.hand", qos: .userInitiated)
-    nonisolated(unsafe) private let bodyQueue = DispatchQueue(label: "com.visionemoji.body", qos: .userInitiated)
+    // Single detection queue at highest priority
+    nonisolated(unsafe) private let detectionQueue = DispatchQueue(
+        label: "com.visionemoji.detection",
+        qos: DispatchQoS(qosClass: .userInteractive, relativePriority: 0)
+    )
 
     // Track objects across frames (protected by trackingLock)
     nonisolated(unsafe) private var trackedObjects: [UUID: TrackedObject] = [:]
     nonisolated(unsafe) private var trackingLock = NSLock()
 
-    private let maxTrackedObjects = 50
+    // Per-object classification cache
+    nonisolated(unsafe) private var clsCache: [UUID: ClsCacheEntry] = [:]
+    nonisolated(unsafe) private var clsCacheLock = NSLock()
+
+    // CIContext for efficient cropping (reusable, thread-safe)
+    nonisolated(unsafe) private let ciContext = CIContext(options: [.useSoftwareRenderer: false])
+
     nonisolated(unsafe) private let objectLifetime: TimeInterval = 1.5
 
-    // Frame throttling
+    // Frame counter & FPS cap
     private var frameCounter = 0
-    private let processEveryNthFrame = 1
+    private var lastProcessedTime: CFAbsoluteTime = 0
 
-    // FPS tracking
-    private var fpsFrameCount = 0
-    private var fpsLastTimestamp: CFAbsoluteTime = 0
+    // FPS tracking (exponential smoothing)
+    private var lastFrameTimestamp: CFAbsoluteTime = 0
 
     // MARK: - Init
 
     init() {
-        ensureModelLoaded(selectedModel)
+        ensureModelLoaded(task: .detect)
+        ensureModelLoaded(task: .classify)
     }
 
     // MARK: - Model Loading
 
-    private func ensureModelLoaded(_ model: YOLOModel) {
-        objectQueue.async { [weak self] in
-            self?.getOrLoadModel(model)
+    private func ensureModelLoaded(task: YOLOTask) {
+        detectionQueue.async { [weak self] in
+            self?.getOrLoadModel(task: task)
         }
     }
 
     @discardableResult
-    nonisolated private func getOrLoadModel(_ model: YOLOModel) -> VNCoreMLModel? {
+    nonisolated private func getOrLoadModel(task: YOLOTask) -> VNCoreMLModel? {
+        let key = ModelKey(task: task)
+
         modelLock.lock()
-        if let cached = loadedModels[model] {
+        if let cached = loadedModels[key] {
             modelLock.unlock()
             return cached
         }
         modelLock.unlock()
 
-        // Load model (first-time only — Xcode pre-compiles .mlpackage/.mlmodel to .mlmodelc)
-        guard let modelURL = Bundle.main.url(forResource: model.resourceName, withExtension: "mlmodelc") else {
-            print("[\(model.rawValue)] Model not found in bundle")
+        let resourceName = task.resourceName
+        guard let modelURL = Bundle.main.url(forResource: resourceName, withExtension: "mlmodelc") else {
+            print("[\(resourceName)] Model not found in bundle")
             return nil
         }
 
@@ -106,13 +113,13 @@ class VisionService: ObservableObject {
             let vnModel = try VNCoreMLModel(for: mlModel)
 
             modelLock.lock()
-            loadedModels[model] = vnModel
+            loadedModels[key] = vnModel
             modelLock.unlock()
 
-            print("[\(model.rawValue)] Loaded successfully")
+            print("[\(resourceName)] Loaded successfully")
             return vnModel
         } catch {
-            print("[\(model.rawValue)] Load failed: \(error)")
+            print("[\(resourceName)] Load failed: \(error)")
             return nil
         }
     }
@@ -127,51 +134,47 @@ class VisionService: ObservableObject {
     // MARK: - Public Methods
 
     func processFrame(_ pixelBuffer: CVPixelBuffer) {
-        frameCounter += 1
-        guard frameCounter % processEveryNthFrame == 0 else { return }
+        // FPS cap gating
+        let now = CFAbsoluteTimeGetCurrent()
+        guard now - lastProcessedTime >= 1.0 / Double(targetFPS) else { return }
+        lastProcessedTime = now
 
-        // Capture settings on main actor before dispatching to background
-        let currentModel = selectedModel
-        let currentThreshold = confidenceThreshold
+        frameCounter += 1
+
+        // Capture settings on main actor before dispatching
+        let threshold = confidenceThreshold
+        let maxDet = maxDetections
+        let clsOn = isClassificationEnabled
+        let frame = frameCounter
+        let clsThreshold = classificationConfidenceThreshold
+        let priority = labelPriority
 
         updateFPS()
         cleanupOldObjects()
+        cleanupClassificationCache()
 
         let group = DispatchGroup()
 
-        // Object detection (YOLO model)
+        // Primary: YOLO26m detection (every frame)
         group.enter()
-        objectQueue.async { [weak self] in
-            self?.performObjectDetection(on: pixelBuffer, model: currentModel, threshold: currentThreshold)
+        detectionQueue.async { [weak self] in
+            self?.performDetection(on: pixelBuffer, threshold: threshold, maxDet: maxDet)
             group.leave()
         }
 
-        if isFaceDetectionEnabled {
-            group.enter()
-            faceQueue.async { [weak self] in
-                self?.performFaceDetection(on: pixelBuffer)
-                group.leave()
-            }
-        }
-
-        if isHandDetectionEnabled {
-            group.enter()
-            handQueue.async { [weak self] in
-                self?.performHandDetection(on: pixelBuffer)
-                group.leave()
-            }
-        }
-
-        if isBodyDetectionEnabled {
-            group.enter()
-            bodyQueue.async { [weak self] in
-                self?.performBodyDetection(on: pixelBuffer)
-                group.leave()
-            }
-        }
-
         group.notify(queue: .main) { [weak self] in
-            self?.resolveOverlapsAndPublish()
+            guard let self = self else { return }
+
+            // After detection, optionally run per-object classification
+            if clsOn && frame % 3 == 0 {
+                self.dispatchPerObjectClassification(
+                    pixelBuffer: pixelBuffer,
+                    clsThreshold: clsThreshold,
+                    priority: priority
+                )
+            }
+
+            self.resolveOverlapsAndPublish(maxDet: maxDet, clsThreshold: clsThreshold, priority: priority)
         }
     }
 
@@ -179,24 +182,37 @@ class VisionService: ObservableObject {
         _ = isFront
     }
 
-    // MARK: - FPS Tracking
+    func unloadAndReload() {
+        modelLock.lock()
+        loadedModels.removeAll()
+        modelLock.unlock()
+
+        clsCacheLock.lock()
+        clsCache.removeAll()
+        clsCacheLock.unlock()
+
+        clearTrackedObjects()
+        // Models auto-reload on next processFrame()
+    }
+
+    // MARK: - FPS Tracking (Exponential Smoothing)
 
     private func updateFPS() {
         let now = CFAbsoluteTimeGetCurrent()
-        fpsFrameCount += 1
-
-        let elapsed = now - fpsLastTimestamp
-        if elapsed >= 1.0 {
-            fps = Double(fpsFrameCount) / elapsed
-            fpsFrameCount = 0
-            fpsLastTimestamp = now
+        if lastFrameTimestamp > 0 {
+            let dt = now - lastFrameTimestamp
+            if dt > 0 {
+                let instantFPS = 1.0 / dt
+                fps = 0.05 * instantFPS + 0.95 * fps
+            }
         }
+        lastFrameTimestamp = now
     }
 
-    // MARK: - Object Detection (YOLO models)
+    // MARK: - Object Detection (YOLO26m — end-to-end, tensor [1, 300, 6])
 
-    nonisolated private func performObjectDetection(on pixelBuffer: CVPixelBuffer, model: YOLOModel, threshold: Float) {
-        guard let vnModel = getOrLoadModel(model) else { return }
+    nonisolated private func performDetection(on pixelBuffer: CVPixelBuffer, threshold: Float, maxDet: Int) {
+        guard let vnModel = getOrLoadModel(task: .detect) else { return }
 
         let startTime = CFAbsoluteTimeGetCurrent()
 
@@ -207,16 +223,12 @@ class VisionService: ObservableObject {
                 return
             }
 
-            if model.isEndToEnd {
-                // YOLO26n: raw tensor output [1, 300, 6]
-                self.handleEndToEndResults(request: request, threshold: threshold, modelInputSize: model.inputSize)
-            } else {
-                // YOLOv3Tiny / YOLO11n: NMS pipeline → VNRecognizedObjectObservation
-                self.handlePipelineResults(request: request, threshold: threshold)
-            }
+            self.handleDetectionResults(request: request, threshold: threshold, inputSize: 640, maxDet: maxDet)
 
             let elapsed = CFAbsoluteTimeGetCurrent() - startTime
-            DispatchQueue.main.async { self.objectProcessingTime = elapsed * 1000 }
+            DispatchQueue.main.async {
+                self.objectProcessingTime = 0.05 * (elapsed * 1000) + 0.95 * self.objectProcessingTime
+            }
         }
 
         request.imageCropAndScaleOption = .scaleFill
@@ -226,231 +238,184 @@ class VisionService: ObservableObject {
         catch { print("Object detection failed: \(error)") }
     }
 
-    /// Handle NMS pipeline models (YOLOv3Tiny, YOLO11n) — returns VNRecognizedObjectObservation
-    nonisolated private func handlePipelineResults(request: VNRequest, threshold: Float) {
-        guard let observations = request.results as? [VNRecognizedObjectObservation] else { return }
-
-        for observation in observations.prefix(50) {
-            guard observation.confidence > threshold else { continue }
-            guard let topLabel = observation.labels.first else { continue }
-
-            let label = topLabel.identifier.lowercased()
-            if label == "person" { continue }
-
-            let emoji = EmojiMapping.emoji(forLabel: label, confidence: observation.confidence)
-            addOrUpdateTrackedObject(
-                type: .object, label: label, emoji: emoji,
-                boundingBox: observation.boundingBox,
-                confidence: observation.confidence
-            )
-        }
-    }
-
-    /// Handle end-to-end models (YOLO26n) — returns raw MLMultiArray [1, 300, 6]
-    nonisolated private func handleEndToEndResults(request: VNRequest, threshold: Float, modelInputSize: CGFloat) {
+    nonisolated private func handleDetectionResults(request: VNRequest, threshold: Float, inputSize: CGFloat, maxDet: Int) {
         guard let results = request.results as? [VNCoreMLFeatureValueObservation],
               let multiArray = results.first?.featureValue.multiArrayValue else { return }
 
         let shape = multiArray.shape.map { $0.intValue }
         guard shape.count == 3, shape[2] == 6 else {
-            print("Unexpected YOLO26 output shape: \(shape)")
+            print("Unexpected detection output shape: \(shape)")
             return
         }
 
         let strides = multiArray.strides.map { $0.intValue }
         let pointer = multiArray.dataPointer.assumingMemoryBound(to: Float.self)
 
-        let numDetections = shape[1] // 300
+        let numDetections = shape[1]
         let detStride = strides[1]
         let fieldStride = strides[2]
 
+        var count = 0
         for i in 0..<numDetections {
+            guard count < maxDet else { break }
+
             let base = i * detStride
             let conf = pointer[base + 4 * fieldStride]
             guard conf > threshold else { continue }
 
-            // Pixel coords relative to model input size (640x640)
             let x1 = CGFloat(pointer[base])
             let y1 = CGFloat(pointer[base + fieldStride])
             let x2 = CGFloat(pointer[base + 2 * fieldStride])
             let y2 = CGFloat(pointer[base + 3 * fieldStride])
             let classIndex = Int(pointer[base + 5 * fieldStride])
 
-            // Normalize to Vision coordinate space [0,1] — y-flipped (bottom-left origin)
             let normalizedBox = CGRect(
-                x: x1 / modelInputSize,
-                y: 1.0 - (y2 / modelInputSize),
-                width: (x2 - x1) / modelInputSize,
-                height: (y2 - y1) / modelInputSize
+                x: x1 / inputSize,
+                y: 1.0 - (y2 / inputSize),
+                width: (x2 - x1) / inputSize,
+                height: (y2 - y1) / inputSize
             )
 
             guard let mapping = EmojiMapping.emoji(forClassIndex: classIndex, confidence: conf) else { continue }
-            if mapping.label == "person" { continue }
 
             addOrUpdateTrackedObject(
-                type: .object, label: mapping.label, emoji: mapping.emoji,
-                boundingBox: normalizedBox,
-                confidence: conf
+                label: mapping.label, emoji: mapping.emoji,
+                boundingBox: normalizedBox, confidence: conf
             )
+            count += 1
         }
+    }
+
+    // MARK: - Per-Object Crop Classification
+
+    private func dispatchPerObjectClassification(
+        pixelBuffer: CVPixelBuffer,
+        clsThreshold: Float,
+        priority: Float
+    ) {
+        trackingLock.lock()
+        let objectsToClassify = Array(trackedObjects.values)
+            .filter { $0.confidence > 0.3 }
+            .prefix(5)  // Max 5 crops per frame for performance
+        trackingLock.unlock()
+
+        guard !objectsToClassify.isEmpty else { return }
+
+        for tracked in objectsToClassify {
+            detectionQueue.async { [weak self] in
+                self?.classifyObjectCrop(
+                    from: pixelBuffer,
+                    bbox: tracked.boundingBox,
+                    objectID: tracked.id
+                )
+            }
+        }
+    }
+
+    nonisolated private func classifyObjectCrop(
+        from pixelBuffer: CVPixelBuffer,
+        bbox: CGRect,
+        objectID: UUID
+    ) {
+        guard let vnModel = getOrLoadModel(task: .classify) else { return }
+
+        let startTime = CFAbsoluteTimeGetCurrent()
+
+        // Convert Vision normalized coords to pixel coords
+        let width = CGFloat(CVPixelBufferGetWidth(pixelBuffer))
+        let height = CGFloat(CVPixelBufferGetHeight(pixelBuffer))
+
+        let pixelX = bbox.origin.x * width
+        let pixelY = (1.0 - bbox.origin.y - bbox.height) * height
+        let pixelW = bbox.width * width
+        let pixelH = bbox.height * height
+
+        // Clamp to buffer bounds with minimum size
+        let cropRect = CGRect(
+            x: max(0, pixelX),
+            y: max(0, pixelY),
+            width: min(pixelW, width - max(0, pixelX)),
+            height: min(pixelH, height - max(0, pixelY))
+        )
+
+        guard cropRect.width > 10 && cropRect.height > 10 else { return }
+
+        // Create cropped CIImage (efficient — no pixel buffer allocation)
+        let ciImage = CIImage(cvPixelBuffer: pixelBuffer).cropped(to: cropRect)
+
+        let request = VNCoreMLRequest(model: vnModel) { [weak self] request, error in
+            guard let self = self else { return }
+            if let error = error {
+                print("Crop classification error: \(error)")
+                return
+            }
+
+            if let classifications = request.results as? [VNClassificationObservation],
+               let top = classifications.first {
+                self.clsCacheLock.lock()
+                self.clsCache[objectID] = ClsCacheEntry(
+                    label: top.identifier,
+                    confidence: top.confidence,
+                    timestamp: Date()
+                )
+                self.clsCacheLock.unlock()
+            }
+
+            let elapsed = CFAbsoluteTimeGetCurrent() - startTime
+            DispatchQueue.main.async {
+                self.classifyProcessingTime = 0.05 * (elapsed * 1000) + 0.95 * self.classifyProcessingTime
+            }
+        }
+
+        request.imageCropAndScaleOption = .scaleFill
+
+        let handler = VNImageRequestHandler(ciImage: ciImage, orientation: .up, options: [:])
+        do { try handler.perform([request]) }
+        catch { print("Crop classification failed: \(error)") }
     }
 
     // MARK: - Shared Tracking
 
     nonisolated private func addOrUpdateTrackedObject(
-        type: DetectionType, label: String, emoji: String,
+        label: String, emoji: String,
         boundingBox: CGRect, confidence: Float
     ) {
         trackingLock.lock()
         defer { trackingLock.unlock() }
 
+        // Find existing tracked object by IoU match
         let existingObject = trackedObjects.values.first { tracked in
-            tracked.type == type && iou(tracked.boundingBox, boundingBox) > 0.3
+            iou(tracked.boundingBox, boundingBox) > 0.3
         }
 
         if let existing = existingObject {
+            let newCenter = CGPoint(x: boundingBox.midX, y: boundingBox.midY)
+            if let prevCenter = trackedObjects[existing.id]?.previousCenter {
+                let dt = Date().timeIntervalSince(existing.lastSeen)
+                if dt > 0 && dt < 1.0 {
+                    let vx = (newCenter.x - prevCenter.x) / CGFloat(dt)
+                    let vy = (newCenter.y - prevCenter.y) / CGFloat(dt)
+                    trackedObjects[existing.id]?.velocity = CGPoint(x: vx, y: vy)
+                }
+            }
+
             trackedObjects[existing.id]?.boundingBox = boundingBox
             trackedObjects[existing.id]?.confidence = confidence
             trackedObjects[existing.id]?.lastSeen = Date()
             trackedObjects[existing.id]?.emoji = emoji
             trackedObjects[existing.id]?.label = label
-        } else if trackedObjects.count < maxTrackedObjects {
+            trackedObjects[existing.id]?.previousCenter = newCenter
+        } else if trackedObjects.count < 100 {
             let id = UUID()
+            let center = CGPoint(x: boundingBox.midX, y: boundingBox.midY)
             trackedObjects[id] = TrackedObject(
-                id: id, type: type, label: label,
+                id: id, label: label,
                 boundingBox: boundingBox,
                 confidence: confidence,
-                emoji: emoji, lastSeen: Date()
+                emoji: emoji, lastSeen: Date(),
+                previousCenter: center
             )
         }
-    }
-
-    // MARK: - Face Detection
-
-    nonisolated private func performFaceDetection(on pixelBuffer: CVPixelBuffer) {
-        let startTime = CFAbsoluteTimeGetCurrent()
-
-        let request = VNDetectFaceRectanglesRequest { [weak self] request, error in
-            guard let self = self else { return }
-            if let error = error {
-                print("Face detection error: \(error)")
-                return
-            }
-
-            guard let observations = request.results as? [VNFaceObservation] else { return }
-
-            for observation in observations.prefix(10) {
-                guard observation.confidence > 0.5 else { continue }
-                self.addOrUpdateTrackedObject(
-                    type: .face, label: "face", emoji: "😄",
-                    boundingBox: observation.boundingBox,
-                    confidence: observation.confidence
-                )
-            }
-
-            let elapsed = CFAbsoluteTimeGetCurrent() - startTime
-            DispatchQueue.main.async { self.faceProcessingTime = elapsed * 1000 }
-        }
-
-        let handler = VNImageRequestHandler(cvPixelBuffer: pixelBuffer, orientation: .up, options: [:])
-        do { try handler.perform([request]) }
-        catch { print("Face detection failed: \(error)") }
-    }
-
-    // MARK: - Hand Detection
-
-    nonisolated private func performHandDetection(on pixelBuffer: CVPixelBuffer) {
-        let startTime = CFAbsoluteTimeGetCurrent()
-
-        let request = VNDetectHumanHandPoseRequest { [weak self] request, error in
-            guard let self = self else { return }
-            if let error = error {
-                print("Hand detection error: \(error)")
-                return
-            }
-
-            guard let observations = request.results as? [VNHumanHandPoseObservation] else { return }
-
-            for observation in observations.prefix(4) {
-                guard observation.confidence > 0.5 else { continue }
-                guard let allPoints = try? observation.recognizedPoints(.all) else { continue }
-
-                var minX: CGFloat = 1.0, minY: CGFloat = 1.0
-                var maxX: CGFloat = 0.0, maxY: CGFloat = 0.0
-
-                for (_, point) in allPoints where point.confidence > 0.3 {
-                    minX = min(minX, point.location.x)
-                    minY = min(minY, point.location.y)
-                    maxX = max(maxX, point.location.x)
-                    maxY = max(maxY, point.location.y)
-                }
-
-                guard maxX > minX && maxY > minY else { continue }
-
-                let boundingBox = CGRect(x: minX, y: minY, width: maxX - minX, height: maxY - minY)
-                self.addOrUpdateTrackedObject(
-                    type: .hand, label: "hand", emoji: "👋",
-                    boundingBox: boundingBox,
-                    confidence: observation.confidence
-                )
-            }
-
-            let elapsed = CFAbsoluteTimeGetCurrent() - startTime
-            DispatchQueue.main.async { self.handProcessingTime = elapsed * 1000 }
-        }
-
-        request.maximumHandCount = 4
-
-        let handler = VNImageRequestHandler(cvPixelBuffer: pixelBuffer, orientation: .up, options: [:])
-        do { try handler.perform([request]) }
-        catch { print("Hand detection failed: \(error)") }
-    }
-
-    // MARK: - Body Detection
-
-    nonisolated private func performBodyDetection(on pixelBuffer: CVPixelBuffer) {
-        let startTime = CFAbsoluteTimeGetCurrent()
-
-        let request = VNDetectHumanBodyPoseRequest { [weak self] request, error in
-            guard let self = self else { return }
-            if let error = error {
-                print("Body detection error: \(error)")
-                return
-            }
-
-            guard let observations = request.results as? [VNHumanBodyPoseObservation] else { return }
-
-            for observation in observations.prefix(4) {
-                guard observation.confidence > 0.5 else { continue }
-                guard let allPoints = try? observation.recognizedPoints(.all) else { continue }
-
-                var minX: CGFloat = 1.0, minY: CGFloat = 1.0
-                var maxX: CGFloat = 0.0, maxY: CGFloat = 0.0
-
-                for (_, point) in allPoints where point.confidence > 0.3 {
-                    minX = min(minX, point.location.x)
-                    minY = min(minY, point.location.y)
-                    maxX = max(maxX, point.location.x)
-                    maxY = max(maxY, point.location.y)
-                }
-
-                guard maxX > minX && maxY > minY else { continue }
-
-                let boundingBox = CGRect(x: minX, y: minY, width: maxX - minX, height: maxY - minY)
-                self.addOrUpdateTrackedObject(
-                    type: .body, label: "body", emoji: "🧍",
-                    boundingBox: boundingBox,
-                    confidence: observation.confidence
-                )
-            }
-
-            let elapsed = CFAbsoluteTimeGetCurrent() - startTime
-            DispatchQueue.main.async { self.bodyProcessingTime = elapsed * 1000 }
-        }
-
-        let handler = VNImageRequestHandler(cvPixelBuffer: pixelBuffer, orientation: .up, options: [:])
-        do { try handler.perform([request]) }
-        catch { print("Body detection failed: \(error)") }
     }
 
     // MARK: - Helper Methods
@@ -465,34 +430,90 @@ class VisionService: ObservableObject {
         }
     }
 
-    private func resolveOverlapsAndPublish() {
+    private func cleanupClassificationCache() {
+        clsCacheLock.lock()
+        defer { clsCacheLock.unlock() }
+
+        let now = Date()
+        clsCache = clsCache.filter { _, entry in
+            now.timeIntervalSince(entry.timestamp) < 2.0
+        }
+        DispatchQueue.main.async { [count = clsCache.count] in
+            self.classificationsCached = count
+        }
+    }
+
+    private func resolveOverlapsAndPublish(maxDet: Int, clsThreshold: Float, priority: Float) {
         trackingLock.lock()
         let allTracked = Array(trackedObjects.values)
         trackingLock.unlock()
 
-        // Sort by priority: face > hand > object > body
-        let sorted = allTracked.sorted { $0.type.priority > $1.type.priority }
+        // Sort by confidence (highest first)
+        let sorted = allTracked.sorted { $0.confidence > $1.confidence }
 
         var keptResults: [DetectionResult] = []
-        var keptBoxes: [CGRect] = []
+        var keptEntries: [(label: String, box: CGRect)] = []
+
+        clsCacheLock.lock()
+        let clsSnapshot = clsCache
+        clsCacheLock.unlock()
 
         for tracked in sorted {
-            guard keptResults.count < maxTrackedObjects else { break }
+            guard keptResults.count < maxDet else { break }
 
-            let overlaps = keptBoxes.contains { box in
-                iou(tracked.boundingBox, box) > 0.4
+            var shouldDrop = false
+            for entry in keptEntries {
+                let overlap = iou(tracked.boundingBox, entry.box)
+
+                // Same label → stricter de-duplication (IoU > 0.2)
+                if tracked.label == entry.label && overlap > 0.2 {
+                    shouldDrop = true
+                    break
+                }
+
+                // Different label → standard overlap threshold
+                if overlap > 0.4 {
+                    shouldDrop = true
+                    break
+                }
             }
 
-            if !overlaps {
+            if !shouldDrop {
+                // Blend labels based on classification cache and priority slider
+                var finalLabel = tracked.label
+                var finalEmoji = tracked.emoji
+                var clsLabel: String? = nil
+
+                if let cls = clsSnapshot[tracked.id], cls.confidence >= clsThreshold {
+                    clsLabel = "\(cls.label) (\(Int(cls.confidence * 100))%)"
+
+                    let useClsLabel: Bool
+                    if priority >= 0.7 {
+                        useClsLabel = true
+                    } else if priority <= 0.3 {
+                        useClsLabel = false
+                    } else {
+                        // Blend zone: use cls when its confidence exceeds detection confidence
+                        useClsLabel = cls.confidence > tracked.confidence
+                    }
+
+                    if useClsLabel {
+                        if let imageNetEmoji = EmojiMapping.emojiForImageNetLabel(cls.label) {
+                            finalEmoji = imageNetEmoji
+                            finalLabel = cls.label
+                        }
+                    }
+                }
+
                 keptResults.append(DetectionResult(
                     id: tracked.id,
-                    type: tracked.type,
-                    label: tracked.label,
+                    label: finalLabel,
                     boundingBox: tracked.boundingBox,
                     confidence: tracked.confidence,
-                    emoji: tracked.emoji
+                    emoji: finalEmoji,
+                    classificationLabel: clsLabel
                 ))
-                keptBoxes.append(tracked.boundingBox)
+                keptEntries.append((label: finalLabel, box: tracked.boundingBox))
             }
         }
 
@@ -511,10 +532,18 @@ class VisionService: ObservableObject {
 
 private struct TrackedObject {
     let id: UUID
-    let type: DetectionType
     var label: String
     var boundingBox: CGRect
     var confidence: Float
     var emoji: String
     var lastSeen: Date
+    var classificationLabel: String?
+    var velocity: CGPoint = .zero
+    var previousCenter: CGPoint?
+}
+
+private struct ClsCacheEntry {
+    let label: String
+    let confidence: Float
+    let timestamp: Date
 }

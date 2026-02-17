@@ -16,6 +16,11 @@ xcuserdata/
 *.png
 *.gif
 *.mlpackage
+*.abi3
+*.so
+*.dylib
+
+venv_export/
 
 ## Playgrounds
 timeline.xctimeline

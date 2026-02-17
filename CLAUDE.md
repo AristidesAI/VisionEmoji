@@ -25,85 +25,86 @@ Since `SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor`, all types are implicitly `@Ma
 
 ## Architecture
 
-Real-time camera → Vision detection → emoji overlay pipeline:
+Real-time camera → YOLO detection → per-object classification → emoji overlay pipeline:
 
 ```
-CameraService (AVCaptureSession, frame delivery)
+CameraService (AVCaptureSession, ultrawide camera, frame delivery)
       ↓ CVPixelBuffer via onFrameProcessed callback
-VisionService (face/hand/body/object detection on separate DispatchQueues)
+VisionService (YOLO26m detection + per-object crop classification on single DispatchQueue)
       ↓ [DetectionResult] via Combine @Published
 EmojiOverlayService (position smoothing with Kalman filter, overlay management)
       ↓ [EmojiOverlay] via Combine @Published
-SwiftUI overlay views (AnimatedEmojiView, EmojiOverlayView)
+SwiftUI overlay views (EmojiOverlayView)
 ```
 
-**CameraService** manages AVCaptureSession on a dedicated `sessionQueue`. Delivers raw `CVPixelBuffer` frames via `onFrameProcessed` closure — does NOT dispatch to main thread first.
+**CameraService** manages AVCaptureSession on a dedicated `sessionQueue`. Uses `@Observable` (not `ObservableObject`). Defaults to ultrawide camera (`.builtInUltraWideCamera`). Discovers available cameras but does not expose switching/zoom. Delivers raw `CVPixelBuffer` frames via `onFrameProcessed` closure.
 
-**VisionService** runs detection requests in parallel on separate DispatchQueues (`faceDetectionQueue`, `handDetectionQueue`, etc.). Publishes `[DetectionResult]` which includes bounding box, confidence, type, and emoji display info.
+**VisionService** runs YOLO26m detection on a single `detectionQueue` (`.userInteractive` QoS). After detection, crops each detected object's bounding box and runs YOLO26m-cls for per-object ImageNet classification. Blends YOLO COCO labels with ImageNet labels based on a configurable priority slider. Publishes `[DetectionResult]`.
 
 **EmojiOverlayService** transforms detection results into positioned overlays. Supports Kalman filtering or simple exponential smoothing for position stability. Configurable via `OverlaySettings`.
 
-**EmojiAssetService** is a singleton that loads animated GIF frames from the `AnimatedEmojis/` folder reference (749 GIF files). Uses `NSCache` for caching. Falls back to static emoji strings when animated versions are unavailable.
+**EmojiAssetService** is a singleton that renders Apple emoji strings to `UIImage` via `NSAttributedString`. Uses `NSCache` for caching.
 
-**ContentView** wires everything together: creates the services, connects camera frames → vision → overlays via Combine pipelines in `CameraTabView.setupServices()`.
+**ContentView** wires everything together: creates the services, connects camera frames → vision → overlays in `CameraTabView.setupServices()`. Includes a settings sheet and a "Reload" button that unloads/reloads models.
 
 ## YOLO CoreML Models
 
-Three YOLO models, switchable at runtime via `VisionService.selectedModel`. All use 80 COCO classes mapped to emojis in `EmojiMapping`.
+Two YOLO26 models (FP16), both end-to-end (`nms=False` forced by YOLO26):
 
-| Model | File | Size | Input | Architecture | Output |
-|-------|------|------|-------|-------------|--------|
-| YOLOv3 Tiny | `YOLOv3TinyFP16.mlmodel` | 17 MB | 416x416 | NMS pipeline | `VNRecognizedObjectObservation` |
-| YOLO11 Nano | `yolo11n.mlpackage` | 5 MB | 640x640 | NMS pipeline (`nms=True`) | `VNRecognizedObjectObservation` |
-| YOLO26 Nano | `yolo26n.mlpackage` | 5 MB | 640x640 | End-to-end (`nms=False`) | Raw tensor `[1, 300, 6]` |
+| Model | File | Task | Input | Output |
+|-------|------|------|-------|--------|
+| YOLO26m | `yolo26m.mlpackage` | Detection | 640×640 | Raw tensor `[1, 300, 6]` |
+| YOLO26m-cls | `yolo26m-cls.mlpackage` | Classification | 224×224 | `VNClassificationObservation` (ImageNet 1000) |
 
-**Model loading**: Lazy-loaded via `getOrLoadModel()`, cached in `loadedModels` dict protected by `NSLock`. Xcode compiles `.mlmodel`/`.mlpackage` to `.mlmodelc` at build time — load with `Bundle.main.url(forResource:withExtension:"mlmodelc")`.
+**Detection output**: `[1, 300, 6]` — each row is `[x1, y1, x2, y2, confidence, class_id]` in 640×640 pixel coords. **Y-flip required** for Vision coordinates: `y = 1.0 - (y2 / inputSize)`.
 
-**Two result-handling paths** in `VisionService`:
-- **Pipeline models** (v3/11): Results arrive as `VNRecognizedObjectObservation` with normalized bounding boxes and string labels. Use `EmojiMapping.cocoLabelToEmoji[label]`.
-- **End-to-end model** (26): Results arrive as `VNCoreMLFeatureValueObservation` containing an `MLMultiArray` with shape `[1, 300, 6]`. Each detection is `[x1, y1, x2, y2, confidence, class_id]` in pixel coords (640x640). **Y-flip required** for Vision coordinates: `y = 1.0 - (y2 / inputSize)`. Use `EmojiMapping.emoji(forClassIndex:)` for index-based lookup.
+**Classification**: Per-object crop classification. Each detected bounding box is cropped from the frame via `CIImage.cropped(to:)`, resized to 224×224, and classified. Results cached per tracked object UUID for 2 seconds. Runs every 3rd frame, max 5 crops per frame.
 
-**"person" class is always skipped** in YOLO results — faces and bodies are handled by dedicated Vision APIs with higher detection priority.
+**Label blending**: `labelPriority` slider controls YOLO vs ImageNet label:
+- `< 0.3` → always use YOLO COCO label
+- `> 0.7` → always use ImageNet label (if above cls confidence threshold)
+- `0.3–0.7` → use ImageNet label when its confidence exceeds YOLO confidence
 
-### Adding a New YOLO Model
+**Model loading**: Lazy-loaded via `getOrLoadModel()`, cached in `loadedModels` dict protected by `NSLock`. Xcode compiles `.mlpackage` to `.mlmodelc` at build time — load with `Bundle.main.url(forResource:withExtension:"mlmodelc")`.
 
-1. Add the `.mlmodel` or `.mlpackage` file to the Xcode project
-2. Ensure it's in the **Sources** build phase (not Resources)
-3. Add a case to the `YOLOModel` enum in `DetectionResult.swift` with `resourceName`, `isEndToEnd`, `inputSize`, and `subtitle`
-4. If it's end-to-end, verify the tensor shape matches `[1, N, 6]` with field order `[x1, y1, x2, y2, conf, class_id]`
+**Emoji mapping**: `EmojiMapping` maps 80 COCO class indices → emojis. `imageNetToEmoji` maps ~100 common ImageNet labels → emojis. `imageNetToCOCOLabel` maps ImageNet labels back to COCO labels for fallback.
 
 ### Exporting Models with Ultralytics
 
 ```python
 from ultralytics import YOLO
-model = YOLO("yolo11n.pt")
-model.export(format="coreml", nms=True)   # Pipeline → VNRecognizedObjectObservation
 
-model = YOLO("yolo26n.pt")
-model.export(format="coreml", nms=False)  # End-to-end → raw tensor [1, 300, 6]
+# Detection (FP16)
+model = YOLO("yolo26m.pt")
+model.export(format="coreml", half=True, imgsz=640, device="mps")
+
+# Classification (FP16)
+model = YOLO("yolo26m-cls.pt")
+model.export(format="coreml", half=True, imgsz=224, device="mps")
 ```
 
-YOLO26 forces `nms=False` regardless of the flag. Use `coremltools.proto.Model_pb2` to inspect model specs when `coremltools` native lib fails to load.
+YOLO26 forces `nms=False` regardless of the flag. Python 3.10 needed for coremltools (3.14 numpy incompatibility).
 
 ## Concurrency Patterns
 
-VisionService is `@MainActor` (publishes to SwiftUI) but dispatches detection work to four parallel `DispatchQueue`s (`faceDetectionQueue`, `handDetectionQueue`, `bodyDetectionQueue`, `objectQueue`). A `DispatchGroup` synchronizes all queues, then `resolveOverlapsAndPublish()` runs on main.
+VisionService is `@MainActor` (publishes to SwiftUI) but dispatches detection work to a single `detectionQueue` (`DispatchQueue`, `.userInteractive` QoS). Detection and classification run sequentially on this queue, then `resolveOverlapsAndPublish()` dispatches back to main.
 
-- `nonisolated(unsafe)` on `trackedObjects`, `loadedModels`, and other state accessed from background queues
-- `nonisolated private func` on detection methods (`performObjectDetection`, `handlePipelineResults`, etc.)
-- `NSLock` protects `trackedObjects` and `loadedModels` dicts from concurrent queue access
+- `nonisolated(unsafe)` on `trackedObjects`, `loadedModels`, `clsCache`, and other state accessed from the background queue
+- `nonisolated private func` on detection/classification methods
+- `NSLock` protects `trackedObjects`, `loadedModels`, and `clsCache` from concurrent access
 
-## Detection Priority and Overlap
+## Detection and Overlap
 
-`DetectionType.priority`: face(4) > hand(3) > object(2) > body(1). When bounding boxes overlap (IoU > 0.4), the lower-priority detection is dropped. Max 20 tracked objects. Objects auto-expire after 1.5 seconds without updates.
+Only one `DetectionType`: `.object` (green, priority 2). When bounding boxes overlap (IoU > 0.4 for different labels, IoU > 0.2 for same label), duplicates are suppressed. Max 20 tracked objects. Objects auto-expire after 1.5 seconds without updates.
 
 ## Key Gotchas
 
-- **Animated GIFs**: Stored as a folder reference (`AnimatedEmojis/`) with ~749 `.gif` files named by Unicode codepoint (e.g., `1f600.gif`). Loaded via `Bundle.main.path(forResource:ofType:inDirectory:"AnimatedEmojis")`. `UIImage(data:)` only shows the first frame — use `CGImageSource` + `UIImageView.animationImages` for actual animation.
-- **iOS 26 Liquid Glass**: `SettingsView` and `GlassEffectContainer` have dual code paths — `@available(iOS 26, *)` for glass effects and fallbacks for older versions. New UI using glass should follow this pattern.
-- **Camera position**: `CameraService.switchCamera(to:position:)` toggles between front/back. VisionService is notified of camera position changes to optimize detection.
-- **ML model build phase**: `.mlmodel` and `.mlpackage` files must be in the **Sources** build phase (not Resources). Xcode compiles them to `.mlmodelc` bundles automatically.
-- **VNDetectRectanglesRequest** does NOT identify objects — it only finds geometric rectangles. Use YOLO CoreML models for object identification.
+- **ML model build phase**: `.mlpackage` files must be in the **Sources** build phase (not Resources). Xcode compiles them to `.mlmodelc` bundles automatically.
+- **CameraService uses `@Observable`** (not `ObservableObject`) — non-Sendable AVFoundation types require `nonisolated(unsafe)`.
+- **Camera is locked to ultrawide** — no camera switching or zoom. Front cameras discovered but not selectable.
+- **Reload button** calls `visionService.unloadAndReload()` + `emojiOverlayService.resetOverlays()` — clears models, cache, and tracked objects. Models auto-reload on next `processFrame()`.
+- **Classification cache**: Per-object results cached for 2s in `clsCache` dict. Cleaned up periodically via `cleanupClassificationCache()`.
+- **Settings UI**: Implemented as `SettingsOverlayView` in `ContentView.swift` (presented as a sheet). `SettingsView.swift` is kept for build compatibility only.
 
 ## Xcode Project File (project.pbxproj)
 

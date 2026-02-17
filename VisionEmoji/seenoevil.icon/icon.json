@@ -1,0 +1,85 @@
+{
+  "fill" : {
+    "linear-gradient" : [
+      "extended-gray:0.50000,1.00000",
+      "extended-gray:1.00000,1.00000"
+    ],
+    "orientation" : {
+      "start" : {
+        "x" : 0.5,
+        "y" : 0
+      },
+      "stop" : {
+        "x" : 0.5,
+        "y" : 0.7
+      }
+    }
+  },
+  "groups" : [
+    {
+      "layers" : [
+        {
+          "blend-mode" : "darken",
+          "fill-specializations" : [
+            {
+              "value" : {
+                "linear-gradient" : [
+                  "extended-srgb:0.20392,0.78039,0.34902,1.00000",
+                  "extended-gray:0.00000,1.00000"
+                ]
+              }
+            },
+            {
+              "appearance" : "dark",
+              "value" : {
+                "linear-gradient" : [
+                  "extended-gray:0.50000,1.00000",
+                  "extended-srgb:0.20392,0.78039,0.34902,1.00000"
+                ],
+                "orientation" : {
+                  "start" : {
+                    "x" : 0.5,
+                    "y" : 1
+                  },
+                  "stop" : {
+                    "x" : 0.5,
+                    "y" : 0
+                  }
+                }
+              }
+            },
+            {
+              "appearance" : "tinted",
+              "value" : {
+                "solid" : "extended-gray:0.75000,1.00000"
+              }
+            }
+          ],
+          "glass" : true,
+          "image-name" : "see-no-evil-monkey_1f648.png",
+          "name" : "see-no-evil-monkey_1f648",
+          "position" : {
+            "scale" : 5.43,
+            "translation-in-points" : [
+              0,
+              -54.61687500000005
+            ]
+          }
+        }
+      ],
+      "shadow" : {
+        "kind" : "neutral",
+        "opacity" : 0.5
+      },
+      "translucency" : {
+        "enabled" : true,
+        "value" : 0.5
+      }
+    }
+  ],
+  "supported-platforms" : {
+    "squares" : [
+      "iOS"
+    ]
+  }
+}

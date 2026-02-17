@@ -27,7 +27,6 @@ class EmojiOverlayService: ObservableObject {
                 viewSize: viewSize
             )
 
-            // Emoji size matches the bounding box (locked to object size)
             let emojiSize = calculateEmojiSize(for: convertedRect.size)
 
             if let previousOverlay = previousOverlays[result.id] {
@@ -54,7 +53,8 @@ class EmojiOverlayService: ObservableObject {
                     detectionType: result.type,
                     lastUpdated: now,
                     label: result.label,
-                    confidence: result.confidence
+                    confidence: result.confidence,
+                    classificationLabel: result.classificationLabel
                 )
 
                 newOverlays.append(updatedOverlay)
@@ -72,7 +72,8 @@ class EmojiOverlayService: ObservableObject {
                     detectionType: result.type,
                     lastUpdated: now,
                     label: result.label,
-                    confidence: result.confidence
+                    confidence: result.confidence,
+                    classificationLabel: result.classificationLabel
                 )
 
                 newOverlay.opacity = 1.0
@@ -104,13 +105,15 @@ class EmojiOverlayService: ObservableObject {
         self.overlays = newOverlays
     }
 
+    func resetOverlays() {
+        overlays = []
+        previousOverlays.removeAll()
+    }
+
     // MARK: - Coordinate Conversion
 
-    /// Camera frame aspect ratio (1080/1920 in portrait = 0.5625)
     private let cameraAspectRatio: CGFloat = 1080.0 / 1920.0
 
-    /// Converts Vision normalized coords [0,1] (bottom-left origin) to view pixel coords (top-left origin),
-    /// accounting for `.resizeAspectFill` cropping in the camera preview layer.
     private func convertVisionToViewCoordinates(visionRect: CGRect, viewSize: CGSize) -> CGRect {
         let viewAspect = viewSize.width / viewSize.height
 
@@ -120,13 +123,11 @@ class EmojiOverlayService: ObservableObject {
         var offsetY: CGFloat = 0
 
         if cameraAspectRatio < viewAspect {
-            // View wider than camera — width fills exactly, height overflows (cropped top/bottom)
             let scaledHeight = viewSize.width / cameraAspectRatio
             scaleX = viewSize.width
             scaleY = scaledHeight
             offsetY = (viewSize.height - scaledHeight) / 2
         } else {
-            // View taller than camera — height fills exactly, width overflows (cropped left/right)
             let scaledWidth = viewSize.height * cameraAspectRatio
             scaleX = scaledWidth
             scaleY = viewSize.height
@@ -134,7 +135,7 @@ class EmojiOverlayService: ObservableObject {
         }
 
         let x = visionRect.origin.x * scaleX + offsetX
-        let y = (1 - visionRect.origin.y - visionRect.height) * scaleY + offsetY
+        let y = (1 - visionRect.origin.y - visionRect.height) * scaleY + offsetY + overlaySettings.overlayYOffset
         let width = visionRect.width * scaleX
         let height = visionRect.height * scaleY
 
@@ -142,10 +143,9 @@ class EmojiOverlayService: ObservableObject {
     }
 
     private func calculateEmojiSize(for boundingBoxSize: CGSize) -> CGSize {
-        // Lock emoji size to the bounding box – use the smaller dimension so the emoji fits inside
-        let size = min(boundingBoxSize.width, boundingBoxSize.height)
-        let minSize: CGFloat = 40
-        let finalSize = max(size, minSize)
+        let dimension = min(boundingBoxSize.width, boundingBoxSize.height)
+        let scaled = dimension * overlaySettings.emojiScale
+        let finalSize = max(scaled, 30)
         return CGSize(width: finalSize, height: finalSize)
     }
 
@@ -162,12 +162,12 @@ class EmojiOverlayService: ObservableObject {
     }
 
     private func applyKalmanFilter(previous: CGPoint, new: CGPoint) -> CGPoint {
-        let gain = overlaySettings.kalmanProcessNoise / (overlaySettings.kalmanProcessNoise + 0.01)
+        let gain = overlaySettings.kalmanProcessNoise / (overlaySettings.kalmanProcessNoise + overlaySettings.kalmanMeasurementNoise)
         return CGPoint(x: previous.x + gain * (new.x - previous.x), y: previous.y + gain * (new.y - previous.y))
     }
 
     private func applyKalmanFilter(previous: CGSize, new: CGSize) -> CGSize {
-        let gain = overlaySettings.kalmanProcessNoise / (overlaySettings.kalmanProcessNoise + 0.01)
+        let gain = overlaySettings.kalmanProcessNoise / (overlaySettings.kalmanProcessNoise + overlaySettings.kalmanMeasurementNoise)
         return CGSize(width: previous.width + gain * (new.width - previous.width), height: previous.height + gain * (new.height - previous.height))
     }
 }
@@ -177,15 +177,16 @@ class EmojiOverlayService: ObservableObject {
 struct EmojiOverlay: Identifiable {
     let id: UUID
     let emoji: String
-    var position: CGPoint           // top-left corner in view coords
-    var size: CGSize                // square emoji size (min dimension)
-    var boundingBoxSize: CGSize     // full rectangular bounding box in view coords
+    var position: CGPoint
+    var size: CGSize
+    var boundingBoxSize: CGSize
     var opacity: Double
     var scale: Double
     let detectionType: DetectionType
     var lastUpdated: Date
     let label: String
     let confidence: Float
+    var classificationLabel: String?
 }
 
 // MARK: - OverlaySettings
@@ -194,7 +195,10 @@ struct OverlaySettings {
     var smoothingFactor: Double = 0.7
     var enableKalmanFilter = true
     var kalmanProcessNoise: Double = 0.01
+    var kalmanMeasurementNoise: Double = 0.01
     var enablePulse = false
     var showTrackingLayer = false
-    var displayMode: DisplayMode = .emoji
+    var displayMode: DisplayMode = .debug
+    var emojiScale: Double = 0.5
+    var overlayYOffset: Double = 0
 }

@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		CCDD00012F46000000F1F0E7 /* yolo26m-cls.mlpackage in Sources */ = {isa = PBXBuildFile; fileRef = CCDD00022F46000000F1F0E7 /* yolo26m-cls.mlpackage */; };
 		DF2C776F2F43335D00F1F0E7 /* VisionEmojiApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = DF2C77702F43335D00F1F0E7 /* VisionEmojiApp.swift */; };
 		DF2C77712F43335D00F1F0E7 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DF2C77722F43335D00F1F0E7 /* ContentView.swift */; };
 		DF2C77732F43335D00F1F0E7 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = DF2C77742F43335D00F1F0E7 /* Assets.xcassets */; };
@@ -20,28 +21,16 @@
 		DF2C778E2F43335D00F1F0E7 /* AnimatedEmojiView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DF2C778F2F43335D00F1F0E7 /* AnimatedEmojiView.swift */; };
 		DF2C77902F43335D00F1F0E7 /* PermissionRequestView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DF2C77912F43335D00F1F0E7 /* PermissionRequestView.swift */; };
 		DF2C77922F43335D00F1F0E7 /* GlassEffectContainer.swift in Sources */ = {isa = PBXBuildFile; fileRef = DF2C77932F43335D00F1F0E7 /* GlassEffectContainer.swift */; };
+<<<<<<< HEAD
 		DF2C779A2F43335D00F1F0E7 /* EmojiOverlayView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DF2C779B2F43335D00F1F0E7 /* EmojiOverlayView.swift */; };
-		DF2C78562F441F7600F1F0E7 /* yolo11n.mlpackage in Sources */ = {isa = PBXBuildFile; fileRef = DF2C78522F441F7600F1F0E7 /* yolo11n.mlpackage */; };
-		DF2C78572F441F7600F1F0E7 /* yolo26n.mlpackage in Sources */ = {isa = PBXBuildFile; fileRef = DF2C78542F441F7600F1F0E7 /* yolo26n.mlpackage */; };
-		DF2C78582F441F7600F1F0E7 /* yolo26n.pt in Resources */ = {isa = PBXBuildFile; fileRef = DF2C78552F441F7600F1F0E7 /* yolo26n.pt */; };
-		DF2C78592F441F7600F1F0E7 /* yolo11n.pt in Resources */ = {isa = PBXBuildFile; fileRef = DF2C78532F441F7600F1F0E7 /* yolo11n.pt */; };
-		DF2C785B2F441F7600F1F0E7 /* YOLOv3TinyFP16.mlmodel in Sources */ = {isa = PBXBuildFile; fileRef = DF2C785A2F441F7600F1F0E7 /* YOLOv3TinyFP16.mlmodel */; };
-		DF2C78732F443D0C00F1F0E7 /* YOLO in Frameworks */ = {isa = PBXBuildFile; productRef = DF2C78722F443D0C00F1F0E7 /* YOLO */; };
-		DF2C78802F443F5900F1F0E7 /* yolo26x.pt in Resources */ = {isa = PBXBuildFile; fileRef = DF2C787F2F443F5900F1F0E7 /* yolo26x.pt */; };
-		DF2C78812F443F5900F1F0E7 /* yolo26m.pt in Resources */ = {isa = PBXBuildFile; fileRef = DF2C78792F443F5900F1F0E7 /* yolo26m.pt */; };
-		DF2C78822F443F5900F1F0E7 /* yolo26s.pt in Resources */ = {isa = PBXBuildFile; fileRef = DF2C787D2F443F5900F1F0E7 /* yolo26s.pt */; };
-		DF2C78832F443F5900F1F0E7 /* yolo26l.pt in Resources */ = {isa = PBXBuildFile; fileRef = DF2C78772F443F5900F1F0E7 /* yolo26l.pt */; };
-		DF2C78842F443F5900F1F0E7 /* yolo26n.pt in Resources */ = {isa = PBXBuildFile; fileRef = DF2C787B2F443F5900F1F0E7 /* yolo26n.pt */; };
-		DF2C78852F443F5900F1F0E7 /* yolo11n.pt in Resources */ = {isa = PBXBuildFile; fileRef = DF2C78752F443F5900F1F0E7 /* yolo11n.pt */; };
-		DF2C78862F443F5900F1F0E7 /* yolo11n.mlpackage in Sources */ = {isa = PBXBuildFile; fileRef = DF2C78742F443F5900F1F0E7 /* yolo11n.mlpackage */; };
 		DF2C78872F443F5900F1F0E7 /* yolo26m.mlpackage in Sources */ = {isa = PBXBuildFile; fileRef = DF2C78782F443F5900F1F0E7 /* yolo26m.mlpackage */; };
-		DF2C78882F443F5900F1F0E7 /* yolo26l.mlpackage in Sources */ = {isa = PBXBuildFile; fileRef = DF2C78762F443F5900F1F0E7 /* yolo26l.mlpackage */; };
-		DF2C78892F443F5900F1F0E7 /* yolo26x.mlpackage in Sources */ = {isa = PBXBuildFile; fileRef = DF2C787E2F443F5900F1F0E7 /* yolo26x.mlpackage */; };
-		DF2C788A2F443F5900F1F0E7 /* yolo26n.mlpackage in Sources */ = {isa = PBXBuildFile; fileRef = DF2C787A2F443F5900F1F0E7 /* yolo26n.mlpackage */; };
-		DF2C788B2F443F5900F1F0E7 /* yolo26s.mlpackage in Sources */ = {isa = PBXBuildFile; fileRef = DF2C787C2F443F5900F1F0E7 /* yolo26s.mlpackage */; };
+		DF2C789F2F4492B900F1F0E7 /* seenoevil.icon in Resources */ = {isa = PBXBuildFile; fileRef = DF2C789E2F4492B900F1F0E7 /* seenoevil.icon */; };
+=======
+>>>>>>> parent of b614d2fa (1.0)
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		CCDD00022F46000000F1F0E7 /* yolo26m-cls.mlpackage */ = {isa = PBXFileReference; lastKnownFileType = folder.mlpackage; path = "yolo26m-cls.mlpackage"; sourceTree = "<group>"; };
 		DF2C77612F43335C00F1F0E7 /* VisionEmoji.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = VisionEmoji.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		DF2C77702F43335D00F1F0E7 /* VisionEmojiApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VisionEmojiApp.swift; sourceTree = "<group>"; };
 		DF2C77722F43335D00F1F0E7 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
@@ -57,24 +46,13 @@
 		DF2C778F2F43335D00F1F0E7 /* AnimatedEmojiView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnimatedEmojiView.swift; sourceTree = "<group>"; };
 		DF2C77912F43335D00F1F0E7 /* PermissionRequestView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PermissionRequestView.swift; sourceTree = "<group>"; };
 		DF2C77932F43335D00F1F0E7 /* GlassEffectContainer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlassEffectContainer.swift; sourceTree = "<group>"; };
+<<<<<<< HEAD
 		DF2C779B2F43335D00F1F0E7 /* EmojiOverlayView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmojiOverlayView.swift; sourceTree = "<group>"; };
-		DF2C78522F441F7600F1F0E7 /* yolo11n.mlpackage */ = {isa = PBXFileReference; lastKnownFileType = folder.mlpackage; path = yolo11n.mlpackage; sourceTree = "<group>"; };
-		DF2C78532F441F7600F1F0E7 /* yolo11n.pt */ = {isa = PBXFileReference; lastKnownFileType = file; path = yolo11n.pt; sourceTree = "<group>"; };
-		DF2C78542F441F7600F1F0E7 /* yolo26n.mlpackage */ = {isa = PBXFileReference; lastKnownFileType = folder.mlpackage; path = yolo26n.mlpackage; sourceTree = "<group>"; };
-		DF2C78552F441F7600F1F0E7 /* yolo26n.pt */ = {isa = PBXFileReference; lastKnownFileType = file; path = yolo26n.pt; sourceTree = "<group>"; };
-		DF2C785A2F441F7600F1F0E7 /* YOLOv3TinyFP16.mlmodel */ = {isa = PBXFileReference; lastKnownFileType = file.mlmodel; path = YOLOv3TinyFP16.mlmodel; sourceTree = "<group>"; };
-		DF2C78742F443F5900F1F0E7 /* yolo11n.mlpackage */ = {isa = PBXFileReference; lastKnownFileType = folder.mlpackage; path = yolo11n.mlpackage; sourceTree = "<group>"; };
-		DF2C78752F443F5900F1F0E7 /* yolo11n.pt */ = {isa = PBXFileReference; lastKnownFileType = file; path = yolo11n.pt; sourceTree = "<group>"; };
-		DF2C78762F443F5900F1F0E7 /* yolo26l.mlpackage */ = {isa = PBXFileReference; lastKnownFileType = folder.mlpackage; path = yolo26l.mlpackage; sourceTree = "<group>"; };
-		DF2C78772F443F5900F1F0E7 /* yolo26l.pt */ = {isa = PBXFileReference; lastKnownFileType = file; path = yolo26l.pt; sourceTree = "<group>"; };
 		DF2C78782F443F5900F1F0E7 /* yolo26m.mlpackage */ = {isa = PBXFileReference; lastKnownFileType = folder.mlpackage; path = yolo26m.mlpackage; sourceTree = "<group>"; };
-		DF2C78792F443F5900F1F0E7 /* yolo26m.pt */ = {isa = PBXFileReference; lastKnownFileType = file; path = yolo26m.pt; sourceTree = "<group>"; };
-		DF2C787A2F443F5900F1F0E7 /* yolo26n.mlpackage */ = {isa = PBXFileReference; lastKnownFileType = folder.mlpackage; path = yolo26n.mlpackage; sourceTree = "<group>"; };
-		DF2C787B2F443F5900F1F0E7 /* yolo26n.pt */ = {isa = PBXFileReference; lastKnownFileType = file; path = yolo26n.pt; sourceTree = "<group>"; };
-		DF2C787C2F443F5900F1F0E7 /* yolo26s.mlpackage */ = {isa = PBXFileReference; lastKnownFileType = folder.mlpackage; path = yolo26s.mlpackage; sourceTree = "<group>"; };
-		DF2C787D2F443F5900F1F0E7 /* yolo26s.pt */ = {isa = PBXFileReference; lastKnownFileType = file; path = yolo26s.pt; sourceTree = "<group>"; };
-		DF2C787E2F443F5900F1F0E7 /* yolo26x.mlpackage */ = {isa = PBXFileReference; lastKnownFileType = folder.mlpackage; path = yolo26x.mlpackage; sourceTree = "<group>"; };
-		DF2C787F2F443F5900F1F0E7 /* yolo26x.pt */ = {isa = PBXFileReference; lastKnownFileType = file; path = yolo26x.pt; sourceTree = "<group>"; };
+		DF2C789E2F4492B900F1F0E7 /* seenoevil.icon */ = {isa = PBXFileReference; lastKnownFileType = folder.iconcomposer.icon; path = seenoevil.icon; sourceTree = "<group>"; };
+=======
+		DF2C77972F43335D00F1F0E7 /* AnimatedEmojis */ = {isa = PBXFileReference; lastKnownFileType = folder; path = AnimatedEmojis; sourceTree = "<group>"; };
+>>>>>>> parent of b614d2fa (1.0)
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -82,7 +60,6 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				DF2C78732F443D0C00F1F0E7 /* YOLO in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -92,21 +69,29 @@
 		DF2C77582F43335B00F1F0E7 = {
 			isa = PBXGroup;
 			children = (
-				DF2C78742F443F5900F1F0E7 /* yolo11n.mlpackage */,
-				DF2C78752F443F5900F1F0E7 /* yolo11n.pt */,
-				DF2C78762F443F5900F1F0E7 /* yolo26l.mlpackage */,
-				DF2C78772F443F5900F1F0E7 /* yolo26l.pt */,
-				DF2C78782F443F5900F1F0E7 /* yolo26m.mlpackage */,
-				DF2C78792F443F5900F1F0E7 /* yolo26m.pt */,
-				DF2C787A2F443F5900F1F0E7 /* yolo26n.mlpackage */,
-				DF2C787B2F443F5900F1F0E7 /* yolo26n.pt */,
-				DF2C787C2F443F5900F1F0E7 /* yolo26s.mlpackage */,
-				DF2C787D2F443F5900F1F0E7 /* yolo26s.pt */,
-				DF2C787E2F443F5900F1F0E7 /* yolo26x.mlpackage */,
-				DF2C787F2F443F5900F1F0E7 /* yolo26x.pt */,
+				DF2C789E2F4492B900F1F0E7 /* seenoevil.icon */,
 				DF2C77632F43335C00F1F0E7 /* VisionEmoji */,
 				DF2C77622F43335C00F1F0E7 /* Products */,
 			);
+			sourceTree = "<group>";
+		};
+		DF2C77632F43335C00F1F0E7 /* VisionEmoji */ = {
+			isa = PBXGroup;
+			children = (
+				DF2C77702F43335D00F1F0E7 /* VisionEmojiApp.swift */,
+				DF2C77722F43335D00F1F0E7 /* ContentView.swift */,
+<<<<<<< HEAD
+				DF2C78782F443F5900F1F0E7 /* yolo26m.mlpackage */,
+				CCDD00022F46000000F1F0E7 /* yolo26m-cls.mlpackage */,
+=======
+>>>>>>> parent of b614d2fa (1.0)
+				DF2C77742F43335D00F1F0E7 /* Assets.xcassets */,
+				DF2C77762F43335D00F1F0E7 /* Info.plist */,
+				DF2C77942F43335D00F1F0E7 /* Services */,
+				DF2C77952F43335D00F1F0E7 /* Views */,
+				DF2C77962F43335D00F1F0E7 /* Models */,
+			);
+			path = VisionEmoji;
 			sourceTree = "<group>";
 		};
 		DF2C77622F43335C00F1F0E7 /* Products */ = {
@@ -115,25 +100,6 @@
 				DF2C77612F43335C00F1F0E7 /* VisionEmoji.app */,
 			);
 			name = Products;
-			sourceTree = "<group>";
-		};
-		DF2C77632F43335C00F1F0E7 /* VisionEmoji */ = {
-			isa = PBXGroup;
-			children = (
-				DF2C77702F43335D00F1F0E7 /* VisionEmojiApp.swift */,
-				DF2C77722F43335D00F1F0E7 /* ContentView.swift */,
-				DF2C78522F441F7600F1F0E7 /* yolo11n.mlpackage */,
-				DF2C78532F441F7600F1F0E7 /* yolo11n.pt */,
-				DF2C78542F441F7600F1F0E7 /* yolo26n.mlpackage */,
-				DF2C78552F441F7600F1F0E7 /* yolo26n.pt */,
-				DF2C785A2F441F7600F1F0E7 /* YOLOv3TinyFP16.mlmodel */,
-				DF2C77742F43335D00F1F0E7 /* Assets.xcassets */,
-				DF2C77762F43335D00F1F0E7 /* Info.plist */,
-				DF2C77942F43335D00F1F0E7 /* Services */,
-				DF2C77952F43335D00F1F0E7 /* Views */,
-				DF2C77962F43335D00F1F0E7 /* Models */,
-			);
-			path = VisionEmoji;
 			sourceTree = "<group>";
 		};
 		DF2C77942F43335D00F1F0E7 /* Services */ = {
@@ -155,7 +121,6 @@
 				DF2C778F2F43335D00F1F0E7 /* AnimatedEmojiView.swift */,
 				DF2C77912F43335D00F1F0E7 /* PermissionRequestView.swift */,
 				DF2C77932F43335D00F1F0E7 /* GlassEffectContainer.swift */,
-				DF2C779B2F43335D00F1F0E7 /* EmojiOverlayView.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -184,9 +149,6 @@
 			dependencies = (
 			);
 			name = VisionEmoji;
-			packageProductDependencies = (
-				DF2C78722F443D0C00F1F0E7 /* YOLO */,
-			);
 			productName = VisionEmoji;
 			productReference = DF2C77612F43335C00F1F0E7 /* VisionEmoji.app */;
 			productType = "com.apple.product-type.application";
@@ -214,10 +176,6 @@
 				Base,
 			);
 			mainGroup = DF2C77582F43335B00F1F0E7;
-			packageReferences = (
-				DF2C78712F443D0C00F1F0E7 /* XCRemoteSwiftPackageReference "yolo-ios-app" */,
-			);
-			preferredProjectObjectVersion = 77;
 			productRefGroup = DF2C77622F43335C00F1F0E7 /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
@@ -232,15 +190,12 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				DF2C78802F443F5900F1F0E7 /* yolo26x.pt in Resources */,
-				DF2C78812F443F5900F1F0E7 /* yolo26m.pt in Resources */,
-				DF2C78822F443F5900F1F0E7 /* yolo26s.pt in Resources */,
-				DF2C78832F443F5900F1F0E7 /* yolo26l.pt in Resources */,
-				DF2C78842F443F5900F1F0E7 /* yolo26n.pt in Resources */,
-				DF2C78852F443F5900F1F0E7 /* yolo11n.pt in Resources */,
-				DF2C78582F441F7600F1F0E7 /* yolo26n.pt in Resources */,
-				DF2C78592F441F7600F1F0E7 /* yolo11n.pt in Resources */,
 				DF2C77732F43335D00F1F0E7 /* Assets.xcassets in Resources */,
+<<<<<<< HEAD
+				DF2C789F2F4492B900F1F0E7 /* seenoevil.icon in Resources */,
+=======
+				DF2C77982F43335D00F1F0E7 /* AnimatedEmojis in Resources */,
+>>>>>>> parent of b614d2fa (1.0)
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -251,19 +206,11 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				DF2C78562F441F7600F1F0E7 /* yolo11n.mlpackage in Sources */,
-				DF2C78572F441F7600F1F0E7 /* yolo26n.mlpackage in Sources */,
 				DF2C776F2F43335D00F1F0E7 /* VisionEmojiApp.swift in Sources */,
 				DF2C77712F43335D00F1F0E7 /* ContentView.swift in Sources */,
 				DF2C77802F43335D00F1F0E7 /* CameraService.swift in Sources */,
 				DF2C77822F43335D00F1F0E7 /* VisionService.swift in Sources */,
 				DF2C77842F43335D00F1F0E7 /* EmojiOverlayService.swift in Sources */,
-				DF2C78862F443F5900F1F0E7 /* yolo11n.mlpackage in Sources */,
-				DF2C78872F443F5900F1F0E7 /* yolo26m.mlpackage in Sources */,
-				DF2C78882F443F5900F1F0E7 /* yolo26l.mlpackage in Sources */,
-				DF2C78892F443F5900F1F0E7 /* yolo26x.mlpackage in Sources */,
-				DF2C788A2F443F5900F1F0E7 /* yolo26n.mlpackage in Sources */,
-				DF2C788B2F443F5900F1F0E7 /* yolo26s.mlpackage in Sources */,
 				DF2C77862F43335D00F1F0E7 /* EmojiAssetService.swift in Sources */,
 				DF2C77882F43335D00F1F0E7 /* DetectionResult.swift in Sources */,
 				DF2C778A2F43335D00F1F0E7 /* CameraView.swift in Sources */,
@@ -271,8 +218,12 @@
 				DF2C778E2F43335D00F1F0E7 /* AnimatedEmojiView.swift in Sources */,
 				DF2C77902F43335D00F1F0E7 /* PermissionRequestView.swift in Sources */,
 				DF2C77922F43335D00F1F0E7 /* GlassEffectContainer.swift in Sources */,
+<<<<<<< HEAD
 				DF2C779A2F43335D00F1F0E7 /* EmojiOverlayView.swift in Sources */,
-				DF2C785B2F441F7600F1F0E7 /* YOLOv3TinyFP16.mlmodel in Sources */,
+				DF2C78872F443F5900F1F0E7 /* yolo26m.mlpackage in Sources */,
+				CCDD00012F46000000F1F0E7 /* yolo26m-cls.mlpackage in Sources */,
+=======
+>>>>>>> parent of b614d2fa (1.0)
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -411,6 +362,8 @@
 				ENABLE_PREVIEWS = YES;
 				EXECUTABLE_NAME = VisionEmoji;
 				INFOPLIST_FILE = VisionEmoji/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = VisionEmoji;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.developer-tools";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -448,6 +401,8 @@
 				ENABLE_PREVIEWS = YES;
 				EXECUTABLE_NAME = VisionEmoji;
 				INFOPLIST_FILE = VisionEmoji/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = VisionEmoji;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.developer-tools";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -496,25 +451,6 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
-
-/* Begin XCRemoteSwiftPackageReference section */
-		DF2C78712F443D0C00F1F0E7 /* XCRemoteSwiftPackageReference "yolo-ios-app" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/ultralytics/yolo-ios-app.git";
-			requirement = {
-				branch = main;
-				kind = branch;
-			};
-		};
-/* End XCRemoteSwiftPackageReference section */
-
-/* Begin XCSwiftPackageProductDependency section */
-		DF2C78722F443D0C00F1F0E7 /* YOLO */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = DF2C78712F443D0C00F1F0E7 /* XCRemoteSwiftPackageReference "yolo-ios-app" */;
-			productName = YOLO;
-		};
-/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = DF2C77592F43335B00F1F0E7 /* Project object */;
 }
