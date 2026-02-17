@@ -13,6 +13,8 @@ import ImageIO
 class EmojiAssetService: ObservableObject {
     static let shared = EmojiAssetService()
     
+    private var imageCache = NSCache<NSString, UIImage>()
+    
     // Comprehensive emoji codes for VisionEmoji app - covering all categories
     private let faceEmojiCodes = ["1f600", "1f603", "1f604", "1f60a", "1f60d", "1f60e", "1f618", "1f642", "1f601", "1f62d", "1f609", "1f617", "1f61a", "1f970", "1f929", "1f973"]
     private let handGestureEmojiCodes = ["1f44b", "1f44d", "1f44f", "270a", "270c", "1f91d", "1f64f", "270b", "1f44e", "270d", "1f448", "1f449", "1f446", "1f447", "1f595", "1f596"]
@@ -52,13 +54,45 @@ class EmojiAssetService: ObservableObject {
     private init() {}
     
     func getEmojiImage(for code: String) -> UIImage? {
-        guard let url = Bundle.main.url(forResource: "AnimatedEmojis/\(code)", withExtension: "gif"),
-              let data = try? Data(contentsOf: url) else {
-            print("Failed to load GIF for code: \(code)")
-            return nil
+        if let cachedImage = imageCache.object(forKey: code as NSString) {
+            return cachedImage
         }
         
-        return UIImage(data: data)
+        var loadedImage: UIImage?
+        let bundle = Bundle.main
+        
+        // Use a more direct approach to find the resource in the bundle folder reference
+        // Folder references (blue folders) maintain their directory structure in the bundle
+        let resourcePath = "AnimatedEmojis/\(code)"
+        
+        if let path = bundle.path(forResource: code, ofType: "gif", inDirectory: "AnimatedEmojis"),
+           let data = try? Data(contentsOf: URL(fileURLWithPath: path)),
+           let image = UIImage(data: data) {
+            loadedImage = image
+        } else if let url = bundle.url(forResource: code, withExtension: "gif", subdirectory: "AnimatedEmojis"),
+                  let data = try? Data(contentsOf: url),
+                  let image = UIImage(data: data) {
+            loadedImage = image
+        }
+        
+        if let image = loadedImage {
+            imageCache.setObject(image, forKey: code as NSString)
+            return image
+        }
+        
+        // Debugging log to help the user if it still fails
+        print("❌ Failed to load GIF: \(code).gif from AnimatedEmojis folder.")
+        print("Bundle path: \(bundle.bundlePath)")
+        return nil
+    }
+
+    func getEmojiDisplay(for type: DetectionType, confidence: Float) -> EmojiDisplay {
+        if let code = getEmojiCodeForType(type, confidence: confidence) {
+            return .animated(code: code)
+        }
+        
+        // Always return first animated code as ultimate fallback to avoid static emojis
+        return .animated(code: faceEmojiCodes[0])
     }
     
     func getEmojiCodeForType(_ type: DetectionType, confidence: Float) -> String? {
@@ -148,17 +182,6 @@ class EmojiAssetService: ObservableObject {
         // Select emoji based on confidence (higher confidence = more positive emojis)
         let index = min(Int(Float(emojis.count) * confidence), emojis.count - 1)
         return emojis[index]
-    }
-    
-    func getEmojiDisplay(for type: DetectionType, confidence: Float) -> EmojiDisplay {
-        // Try to get animated emoji first
-        if let emojiCode = getEmojiCodeForType(type, confidence: confidence) {
-            return .animated(code: emojiCode)
-        }
-        
-        // Fall back to static emoji
-        let staticEmoji = getFallbackEmojiForType(type, confidence: confidence)
-        return .staticEmoji(emoji: staticEmoji)
     }
     
     func preloadEssentialEmojis() {

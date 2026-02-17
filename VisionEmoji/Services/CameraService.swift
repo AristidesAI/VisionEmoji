@@ -18,8 +18,12 @@ class CameraService: NSObject, ObservableObject {
     @Published var error: CameraError?
     
     private let sessionQueue = DispatchQueue(label: "camera.session.queue")
-    private var videoOutput = AVCaptureVideoDataOutput()
+    private let videoOutput = AVCaptureVideoDataOutput()
     private let videoOutputQueue = DispatchQueue(label: "camera.video.output.queue")
+    @Published var currentCamera: AVCaptureDevice.DeviceType = .builtInWideAngleCamera
+    @Published var cameraPosition: AVCaptureDevice.Position = .back
+    
+    private var videoInput: AVCaptureDeviceInput?
     
     // Frame processing callback
     var onFrameProcessed: ((CVPixelBuffer) -> Void)?
@@ -76,16 +80,28 @@ class CameraService: NSObject, ObservableObject {
         sessionQueue.async { [weak self] in
             guard let self = self else { return }
             
-            let session = AVCaptureSession()
+            if self.captureSession == nil {
+                self.captureSession = AVCaptureSession()
+            }
+            
+            guard let session = self.captureSession else { return }
             session.beginConfiguration()
             
-            // Set session preset for high quality
+            // Remove existing input if any
+            if let videoInput = self.videoInput {
+                session.removeInput(videoInput)
+            }
+            
+            // Set session preset
             if session.canSetSessionPreset(.high) {
                 session.sessionPreset = .high
             }
             
-            // Add video input
-            guard let videoDevice = AVCaptureDevice.default(.builtInWideAngleCamera, for: .video, position: .back),
+            // Add video input based on current settings
+            let device = AVCaptureDevice.default(self.currentCamera, for: .video, position: self.cameraPosition) ?? 
+                         AVCaptureDevice.default(.builtInWideAngleCamera, for: .video, position: .back)
+            
+            guard let videoDevice = device,
                   let videoInput = try? AVCaptureDeviceInput(device: videoDevice),
                   session.canAddInput(videoInput) else {
                 DispatchQueue.main.async {
@@ -95,33 +111,37 @@ class CameraService: NSObject, ObservableObject {
             }
             
             session.addInput(videoInput)
+            self.videoInput = videoInput
             
-            // Add video output
-            self.videoOutput.setSampleBufferDelegate(self, queue: self.videoOutputQueue)
-            self.videoOutput.videoSettings = [
-                kCVPixelBufferPixelFormatTypeKey as String: kCVPixelFormatType_32BGRA
-            ]
-            
-            if session.canAddOutput(self.videoOutput) {
-                session.addOutput(self.videoOutput)
-            } else {
-                DispatchQueue.main.async {
-                    self.error = .configurationFailed
+            // Add video output if not already added
+            if session.outputs.isEmpty {
+                self.videoOutput.setSampleBufferDelegate(self, queue: self.videoOutputQueue)
+                self.videoOutput.videoSettings = [
+                    kCVPixelBufferPixelFormatTypeKey as String: kCVPixelFormatType_32BGRA
+                ]
+                
+                if session.canAddOutput(self.videoOutput) {
+                    session.addOutput(self.videoOutput)
                 }
-                return
             }
             
             session.commitConfiguration()
             
             DispatchQueue.main.async {
-                self.captureSession = session
-                
-                // Create preview layer
-                let previewLayer = AVCaptureVideoPreviewLayer(session: session)
-                previewLayer.videoGravity = .resizeAspectFill
-                self.previewLayer = previewLayer
+                // Create preview layer if not already created
+                if self.previewLayer == nil {
+                    let previewLayer = AVCaptureVideoPreviewLayer(session: session)
+                    previewLayer.videoGravity = .resizeAspectFill
+                    self.previewLayer = previewLayer
+                }
             }
         }
+    }
+    
+    func switchCamera(to deviceType: AVCaptureDevice.DeviceType, position: AVCaptureDevice.Position) {
+        self.currentCamera = deviceType
+        self.cameraPosition = position
+        configureSession()
     }
     
     func startSession() {

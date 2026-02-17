@@ -38,6 +38,7 @@
 		DF2C778F2F43335D00F1F0E7 /* AnimatedEmojiView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnimatedEmojiView.swift; sourceTree = "<group>"; };
 		DF2C77912F43335D00F1F0E7 /* PermissionRequestView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PermissionRequestView.swift; sourceTree = "<group>"; };
 		DF2C77932F43335D00F1F0E7 /* GlassEffectContainer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlassEffectContainer.swift; sourceTree = "<group>"; };
+		DF2C77972F43335D00F1F0E7 /* AnimatedEmojis */ = {isa = PBXFileReference; lastKnownFileType = folder; path = AnimatedEmojis; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -172,6 +173,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				DF2C77732F43335D00F1F0E7 /* Assets.xcassets in Resources */,
+				DF2C77982F43335D00F1F0E7 /* AnimatedEmojis in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

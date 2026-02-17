@@ -29,6 +29,11 @@ struct CameraView: UIViewRepresentable {
     
     func updateUIView(_ uiView: UIView, context: Context) {
         if let previewLayer = cameraService.previewLayer {
+            if previewLayer.superlayer == nil {
+                previewLayer.frame = uiView.bounds
+                uiView.layer.addSublayer(previewLayer)
+            }
+            
             DispatchQueue.main.async {
                 previewLayer.frame = uiView.bounds
             }

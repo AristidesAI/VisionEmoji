@@ -7,6 +7,7 @@
 
 import SwiftUI
 import Combine
+import AVFoundation
 
 struct ContentView: View {
     @StateObject private var cameraService = CameraService()
@@ -14,33 +15,115 @@ struct ContentView: View {
     @StateObject private var emojiOverlayService = EmojiOverlayService()
     
     @State private var selectedTab = 0
+    @State private var showSettingsMenu = false
+    
+    // Performance optimization: Pre-warm the settings view
+    private var settingsView: some View {
+        SettingsOverlayView(visionService: visionService, overlayService: emojiOverlayService)
+    }
     
     var body: some View {
-        TabView(selection: $selectedTab) {
-            // Camera Tab
-            CameraTabView(
-                cameraService: cameraService,
-                visionService: visionService,
-                overlayService: emojiOverlayService
-            )
-            .tabItem {
-                Image(systemName: "camera.fill")
-                Text("Camera")
-            }
-            .tag(0)
-            
-            // Settings Tab
-            SettingsView(visionService: visionService)
+        ZStack {
+            TabView(selection: $selectedTab) {
+                // Camera Tab
+                CameraTabView(
+                    cameraService: cameraService,
+                    visionService: visionService,
+                    overlayService: emojiOverlayService
+                )
                 .tabItem {
-                    Image(systemName: "gearshape.fill")
-                    Text("Settings")
+                    Image(systemName: "camera.fill")
+                    Text("Camera")
                 }
-                .tag(1)
+                .tag(0)
+                
+                // Settings Tab (Trigger for Overlay)
+                Color.clear
+                    .tabItem {
+                        Image(systemName: "gearshape.fill")
+                        Text("Settings")
+                    }
+                    .tag(1)
+            }
+            .accentColor(.blue)
+            .onChange(of: selectedTab) { _, newValue in
+                if newValue == 1 {
+                    showSettingsMenu = true
+                    selectedTab = 0 // Keep on camera tab
+                }
+            }
+            
+            // Camera Switcher Button (Bottom Left)
+            VStack {
+                Spacer()
+                HStack {
+                    Button(action: {
+                        cycleCamera()
+                    }) {
+                        Image(systemName: "arrow.triangle.2.circlepath.camera")
+                            .font(.system(size: 20, weight: .bold))
+                            .foregroundColor(.white)
+                            .padding(12)
+                            .background(.ultraThinMaterial, in: Circle())
+                    }
+                    .padding(.leading, 20)
+                    .padding(.bottom, 60) // Adjusted to be above the tab bar but not too high
+                    Spacer()
+                }
+            }
         }
-        .accentColor(.blue)
+        .sheet(isPresented: $showSettingsMenu) {
+            settingsView
+                .presentationDetents([.medium, .large])
+                .presentationBackgroundInteraction(.enabled(upThrough: .medium))
+        }
         .onAppear {
             // Preload essential emojis when app launches
             EmojiAssetService.shared.preloadEssentialEmojis()
+        }
+    }
+    
+    private func cycleCamera() {
+        if cameraService.cameraPosition == .back {
+            cameraService.switchCamera(to: .builtInWideAngleCamera, position: .front)
+        } else {
+            cameraService.switchCamera(to: .builtInWideAngleCamera, position: .back)
+        }
+    }
+}
+
+struct SettingsOverlayView: View {
+    @ObservedObject var visionService: VisionService
+    @ObservedObject var overlayService: EmojiOverlayService
+    
+    var body: some View {
+        NavigationView {
+            Form {
+                Section("Detection Types") {
+                    Toggle("Faces", isOn: $visionService.isFaceDetectionEnabled)
+                    Toggle("Hands", isOn: $visionService.isHandGestureDetectionEnabled)
+                    Toggle("Buildings", isOn: $visionService.isBuildingDetectionEnabled)
+                    Toggle("Cars", isOn: $visionService.isCarDetectionEnabled)
+                    Toggle("Objects", isOn: $visionService.isObjectDetectionEnabled)
+                }
+                
+                Section("Visuals") {
+                    Toggle("Animated Emojis", isOn: $overlayService.overlaySettings.showAnimations)
+                    Toggle("Show Vision Tracking Layer", isOn: $overlayService.overlaySettings.showTrackingLayer)
+                }
+                
+                Section("Performance") {
+                    Slider(value: $overlayService.overlaySettings.smoothingFactor, in: 0...1) {
+                        Text("Smoothing")
+                    } minimumValueLabel: {
+                        Text("Off")
+                    } maximumValueLabel: {
+                        Text("High")
+                    }
+                }
+            }
+            .navigationTitle("Settings")
+            .navigationBarTitleDisplayMode(.inline)
         }
     }
 }
@@ -88,7 +171,7 @@ struct CameraTabView: View {
                     setupServices()
                 }
             }
-            .onChange(of: cameraService.isAuthorized) { isAuthorized in
+            .onChange(of: cameraService.isAuthorized) { _, isAuthorized in
                 if isAuthorized {
                     setupServices()
                 }
@@ -104,86 +187,46 @@ struct CameraTabView: View {
     
     private var controlsView: some View {
         HStack(spacing: 20) {
-            // Clear overlays button
-            Button(action: {
-                overlayService.clearOverlays()
-            }) {
-                Image(systemName: "trash.circle.fill")
-                    .font(.title2)
-                    .foregroundColor(.white)
-                    .background(Color.black.opacity(0.5))
-                    .clipShape(Circle())
-            }
-            
             Spacer()
             
             // Detection status indicator
-            Image(systemName: visionService.isProcessing ? "eye.circle.fill" : "eye.slash.circle.fill")
-                .font(.title2)
-                .foregroundColor(visionService.isProcessing ? .green : .red)
-                .background(Color.black.opacity(0.5))
-                .clipShape(Circle())
+            HStack(spacing: 8) {
+                Image(systemName: visionService.isProcessing ? "eye.circle.fill" : "eye.slash.circle.fill")
+                    .foregroundColor(visionService.isProcessing ? .green : .red)
+                Text(visionService.isProcessing ? "Active" : "Idle")
+                    .font(.caption)
+                    .fontWeight(.bold)
+                    .foregroundColor(.white)
+            }
+            .padding(.horizontal, 12)
+            .padding(.vertical, 8)
+            .background(.ultraThinMaterial, in: Capsule())
         }
         .padding()
-        .background(
-            // Glass effect for iOS 26+ with fallback
-            Group {
-                if #available(iOS 26.0, *) {
-                    GlassEffectContainer {
-                        HStack(spacing: 20) {
-                            Button(action: {
-                                overlayService.clearOverlays()
-                            }) {
-                                Image(systemName: "trash.circle.fill")
-                                    .font(.title2)
-                                    .foregroundColor(.white)
-                            }
-                            
-                            Spacer()
-                            
-                            Image(systemName: visionService.isProcessing ? "eye.circle.fill" : "eye.slash.circle.fill")
-                                .font(.title2)
-                                .foregroundColor(visionService.isProcessing ? .green : .red)
-                        }
-                        .padding()
-                    }
-                } else {
-                    // Fallback for earlier iOS versions
-                    HStack(spacing: 20) {
-                        Button(action: {
-                            overlayService.clearOverlays()
-                        }) {
-                            Image(systemName: "trash.circle.fill")
-                                .font(.title2)
-                                .foregroundColor(.white)
-                        }
-                        .buttonStyle(.glass)
-                        
-                        Spacer()
-                        
-                        Image(systemName: visionService.isProcessing ? "eye.circle.fill" : "eye.slash.circle.fill")
-                            .font(.title2)
-                            .foregroundColor(visionService.isProcessing ? .green : .red)
-                    }
-                    .padding()
-                    .background(Color.black.opacity(0.3))
-                    .cornerRadius(15)
-                }
-            }
-        )
     }
     
     private func setupServices() {
+        // Configure and start camera session
+        cameraService.configureSession()
+        cameraService.startSession()
+        
         // Setup camera frame processing
-        cameraService.onFrameProcessed = { pixelBuffer in
-            visionService.processFrame(pixelBuffer)
+        cameraService.onFrameProcessed = { [weak visionService] pixelBuffer in
+            visionService?.processFrame(pixelBuffer)
         }
+        
+        // Link camera position to vision service for optimization
+        cameraService.$cameraPosition
+            .sink { [weak visionService] position in
+                visionService?.updateCameraPosition(isFront: position == .front)
+            }
+            .store(in: &cancellables)
         
         // Setup vision results processing
         visionService.$detectionResults
             .receive(on: DispatchQueue.main)
-            .sink { results in
-                overlayService.updateOverlays(with: results, viewSize: viewSize)
+            .sink { [weak overlayService] results in
+                overlayService?.updateOverlays(with: results, viewSize: viewSize)
             }
             .store(in: &cancellables)
     }
