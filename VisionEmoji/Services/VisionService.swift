@@ -58,12 +58,12 @@ class VisionService: ObservableObject {
     nonisolated(unsafe) private var trackedObjects: [UUID: TrackedObject] = [:]
     nonisolated(unsafe) private var trackingLock = NSLock()
 
-    private let maxTrackedObjects = 20
+    private let maxTrackedObjects = 50
     nonisolated(unsafe) private let objectLifetime: TimeInterval = 1.5
 
     // Frame throttling
     private var frameCounter = 0
-    private let processEveryNthFrame = 2
+    private let processEveryNthFrame = 1
 
     // FPS tracking
     private var fpsFrameCount = 0
@@ -230,14 +230,14 @@ class VisionService: ObservableObject {
     nonisolated private func handlePipelineResults(request: VNRequest, threshold: Float) {
         guard let observations = request.results as? [VNRecognizedObjectObservation] else { return }
 
-        for observation in observations.prefix(20) {
+        for observation in observations.prefix(50) {
             guard observation.confidence > threshold else { continue }
             guard let topLabel = observation.labels.first else { continue }
 
             let label = topLabel.identifier.lowercased()
             if label == "person" { continue }
 
-            let emoji = EmojiMapping.cocoLabelToEmoji[label] ?? "❓"
+            let emoji = EmojiMapping.emoji(forLabel: label, confidence: observation.confidence)
             addOrUpdateTrackedObject(
                 type: .object, label: label, emoji: emoji,
                 boundingBox: observation.boundingBox,
@@ -284,7 +284,7 @@ class VisionService: ObservableObject {
                 height: (y2 - y1) / modelInputSize
             )
 
-            guard let mapping = EmojiMapping.emoji(forClassIndex: classIndex) else { continue }
+            guard let mapping = EmojiMapping.emoji(forClassIndex: classIndex, confidence: conf) else { continue }
             if mapping.label == "person" { continue }
 
             addOrUpdateTrackedObject(

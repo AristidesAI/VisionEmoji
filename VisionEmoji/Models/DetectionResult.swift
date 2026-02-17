@@ -58,6 +58,16 @@ enum DetectionType: String, CaseIterable {
     }
 }
 
+// MARK: - Display Mode
+
+enum DisplayMode: String, CaseIterable, Identifiable {
+    case emoji = "Emoji"
+    case yolo = "YOLO Boxes"
+    case debug = "Debug"
+
+    var id: String { rawValue }
+}
+
 // MARK: - YOLO Model Selection
 
 enum YOLOModel: String, CaseIterable, Identifiable {
@@ -124,95 +134,117 @@ struct EmojiMapping {
         "vase", "scissors", "teddy bear", "hair drier", "toothbrush",
     ]
 
-    /// COCO label name → Apple emoji
-    static let cocoLabelToEmoji: [String: String] = [
-        "person": "🧑",
-        "bicycle": "🚲",
-        "car": "🚗",
-        "motorcycle": "🏍️",
-        "airplane": "✈️",
-        "bus": "🚌",
-        "train": "🚆",
-        "truck": "🚚",
-        "boat": "⛵",
-        "traffic light": "🚦",
-        "fire hydrant": "🧯",
-        "stop sign": "🛑",
-        "parking meter": "🅿️",
-        "bench": "🪑",
-        "bird": "🐦",
-        "cat": "🐱",
-        "dog": "🐶",
-        "horse": "🐴",
-        "sheep": "🐑",
-        "cow": "🐄",
-        "elephant": "🐘",
-        "bear": "🐻",
-        "zebra": "🦓",
-        "giraffe": "🦒",
-        "backpack": "🎒",
-        "umbrella": "☂️",
-        "handbag": "👜",
-        "tie": "👔",
-        "suitcase": "🧳",
-        "frisbee": "🥏",
-        "skis": "⛷️",
-        "snowboard": "🏂",
-        "sports ball": "⚽",
-        "kite": "🪁",
-        "baseball bat": "⚾",
-        "baseball glove": "🧤",
-        "skateboard": "🛹",
-        "surfboard": "🏄",
-        "tennis racket": "🎾",
-        "bottle": "🍾",
-        "wine glass": "🍷",
-        "cup": "☕",
-        "fork": "🍴",
-        "knife": "🔪",
-        "spoon": "🥄",
-        "bowl": "🥣",
-        "banana": "🍌",
-        "apple": "🍎",
-        "sandwich": "🥪",
-        "orange": "🍊",
-        "broccoli": "🥦",
-        "carrot": "🥕",
-        "hot dog": "🌭",
-        "pizza": "🍕",
-        "donut": "🍩",
-        "cake": "🎂",
-        "chair": "🪑",
-        "couch": "🛋️",
-        "potted plant": "🪴",
-        "bed": "🛏️",
-        "dining table": "🍽️",
-        "toilet": "🚽",
-        "tv": "📺",
-        "laptop": "💻",
-        "mouse": "🖱️",
-        "remote": "📱",
-        "keyboard": "⌨️",
-        "cell phone": "📱",
-        "microwave": "📦",
-        "oven": "🔥",
-        "toaster": "🍞",
-        "sink": "🚰",
-        "refrigerator": "🧊",
-        "book": "📖",
-        "clock": "🕐",
-        "vase": "🏺",
-        "scissors": "✂️",
-        "teddy bear": "🧸",
-        "hair drier": "💨",
-        "toothbrush": "🪥",
+    /// COCO label → (primary emoji, alternate emoji)
+    /// Primary used at high confidence (>=0.7), alternate at lower confidence
+    static let cocoLabelToEmojiPair: [String: (primary: String, alternate: String)] = [
+        "person": ("🧑", "👤"),
+        "bicycle": ("🚲", "🚴"),
+        "car": ("🚗", "🚙"),
+        "motorcycle": ("🏍️", "🛵"),
+        "airplane": ("✈️", "🛩️"),
+        "bus": ("🚌", "🚍"),
+        "train": ("🚆", "🚂"),
+        "truck": ("🚚", "🛻"),
+        "boat": ("⛵", "🚤"),
+        "traffic light": ("🚦", "🚥"),
+        "fire hydrant": ("🧯", "🚒"),
+        "stop sign": ("🛑", "⛔"),
+        "parking meter": ("🅿️", "🏧"),
+        "bench": ("🪑", "💺"),
+        "bird": ("🐦", "🐤"),
+        "cat": ("🐱", "😺"),
+        "dog": ("🐶", "🐕"),
+        "horse": ("🐴", "🐎"),
+        "sheep": ("🐑", "🐏"),
+        "cow": ("🐄", "🐮"),
+        "elephant": ("🐘", "🦣"),
+        "bear": ("🐻", "🧸"),
+        "zebra": ("🦓", "🐴"),
+        "giraffe": ("🦒", "🐪"),
+        "backpack": ("🎒", "👝"),
+        "umbrella": ("☂️", "🌂"),
+        "handbag": ("👜", "👛"),
+        "tie": ("👔", "🎀"),
+        "suitcase": ("🧳", "💼"),
+        "frisbee": ("🥏", "💿"),
+        "skis": ("⛷️", "🎿"),
+        "snowboard": ("🏂", "🛷"),
+        "sports ball": ("⚽", "🏐"),
+        "kite": ("🪁", "🪂"),
+        "baseball bat": ("⚾", "🏏"),
+        "baseball glove": ("🧤", "🥊"),
+        "skateboard": ("🛹", "🛼"),
+        "surfboard": ("🏄", "🏊"),
+        "tennis racket": ("🎾", "🏸"),
+        "bottle": ("🍾", "🧴"),
+        "wine glass": ("🍷", "🥂"),
+        "cup": ("☕", "🍵"),
+        "fork": ("🍴", "🥢"),
+        "knife": ("🔪", "🗡️"),
+        "spoon": ("🥄", "🥣"),
+        "bowl": ("🥣", "🍜"),
+        "banana": ("🍌", "🥝"),
+        "apple": ("🍎", "🍏"),
+        "sandwich": ("🥪", "🌯"),
+        "orange": ("🍊", "🍋"),
+        "broccoli": ("🥦", "🥬"),
+        "carrot": ("🥕", "🌽"),
+        "hot dog": ("🌭", "🥓"),
+        "pizza": ("🍕", "🫓"),
+        "donut": ("🍩", "🧁"),
+        "cake": ("🎂", "🍰"),
+        "chair": ("🪑", "💺"),
+        "couch": ("🛋️", "🪑"),
+        "potted plant": ("🪴", "🌿"),
+        "bed": ("🛏️", "🛌"),
+        "dining table": ("🍽️", "🪵"),
+        "toilet": ("🚽", "🪠"),
+        "tv": ("📺", "🖥️"),
+        "laptop": ("💻", "🖥️"),
+        "mouse": ("🖱️", "🖲️"),
+        "remote": ("📱", "🎮"),
+        "keyboard": ("⌨️", "🔤"),
+        "cell phone": ("📱", "📲"),
+        "microwave": ("📦", "🔲"),
+        "oven": ("🔥", "♨️"),
+        "toaster": ("🍞", "🥐"),
+        "sink": ("🚰", "🪣"),
+        "refrigerator": ("🧊", "🗄️"),
+        "book": ("📖", "📚"),
+        "clock": ("🕐", "⏰"),
+        "vase": ("🏺", "🫙"),
+        "scissors": ("✂️", "🪡"),
+        "teddy bear": ("🧸", "🐻"),
+        "hair drier": ("💨", "🌬️"),
+        "toothbrush": ("🪥", "🦷"),
     ]
 
-    /// Look up emoji by COCO class index (for YOLO26n raw tensor output)
+    /// Backward-compatible: returns the primary emoji for each label
+    static var cocoLabelToEmoji: [String: String] {
+        cocoLabelToEmojiPair.mapValues { $0.primary }
+    }
+
+    static let highConfidenceThreshold: Float = 0.7
+
+    /// Returns primary emoji at high confidence, alternate at lower confidence
+    static func emoji(forLabel label: String, confidence: Float) -> String {
+        guard let pair = cocoLabelToEmojiPair[label] else { return "❓" }
+        return confidence >= highConfidenceThreshold ? pair.primary : pair.alternate
+    }
+
+    /// Look up emoji by COCO class index with confidence-based selection
+    static func emoji(forClassIndex index: Int, confidence: Float) -> (label: String, emoji: String)? {
+        guard index >= 0 && index < cocoLabels.count else { return nil }
+        let label = cocoLabels[index]
+        let emoji = emoji(forLabel: label, confidence: confidence)
+        return (label, emoji)
+    }
+
+    /// Look up emoji by COCO class index (primary only, for backward compat)
     static func emoji(forClassIndex index: Int) -> (label: String, emoji: String)? {
         guard index >= 0 && index < cocoLabels.count else { return nil }
         let label = cocoLabels[index]
-        let emoji = cocoLabelToEmoji[label] ?? "❓"
+        let emoji = cocoLabelToEmojiPair[label]?.primary ?? "❓"
         return (label, emoji)
     }
 }

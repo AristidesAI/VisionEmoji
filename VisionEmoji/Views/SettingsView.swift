@@ -53,7 +53,13 @@ struct SettingsView: View {
                 }
 
                 Section("Display") {
-                    Toggle("Tracking Boxes", isOn: $overlayService.overlaySettings.showTrackingLayer)
+                    Picker("Display Mode", selection: $overlayService.overlaySettings.displayMode) {
+                        ForEach(DisplayMode.allCases) { mode in
+                            Text(mode.rawValue).tag(mode)
+                        }
+                    }
+                    .pickerStyle(.segmented)
+
                     Toggle("Kalman Smoothing", isOn: $overlayService.overlaySettings.enableKalmanFilter)
                 }
 

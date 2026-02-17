@@ -39,15 +39,22 @@ class EmojiOverlayService: ObservableObject {
                     ? applyKalmanFilter(previous: previousOverlay.size, new: emojiSize)
                     : applySimpleSmoothing(previous: previousOverlay.size, new: emojiSize)
 
+                let smoothedBBoxSize = overlaySettings.enableKalmanFilter
+                    ? applyKalmanFilter(previous: previousOverlay.boundingBoxSize, new: convertedRect.size)
+                    : applySimpleSmoothing(previous: previousOverlay.boundingBoxSize, new: convertedRect.size)
+
                 let updatedOverlay = EmojiOverlay(
                     id: result.id,
                     emoji: result.emoji,
                     position: smoothedPosition,
                     size: smoothedSize,
+                    boundingBoxSize: smoothedBBoxSize,
                     opacity: 1.0,
                     scale: 1.0,
                     detectionType: result.type,
-                    lastUpdated: now
+                    lastUpdated: now,
+                    label: result.label,
+                    confidence: result.confidence
                 )
 
                 newOverlays.append(updatedOverlay)
@@ -59,10 +66,13 @@ class EmojiOverlayService: ObservableObject {
                     emoji: result.emoji,
                     position: convertedRect.origin,
                     size: emojiSize,
+                    boundingBoxSize: convertedRect.size,
                     opacity: 0.0,
                     scale: 0.5,
                     detectionType: result.type,
-                    lastUpdated: now
+                    lastUpdated: now,
+                    label: result.label,
+                    confidence: result.confidence
                 )
 
                 newOverlay.opacity = 1.0
@@ -96,11 +106,38 @@ class EmojiOverlayService: ObservableObject {
 
     // MARK: - Coordinate Conversion
 
+    /// Camera frame aspect ratio (1080/1920 in portrait = 0.5625)
+    private let cameraAspectRatio: CGFloat = 1080.0 / 1920.0
+
+    /// Converts Vision normalized coords [0,1] (bottom-left origin) to view pixel coords (top-left origin),
+    /// accounting for `.resizeAspectFill` cropping in the camera preview layer.
     private func convertVisionToViewCoordinates(visionRect: CGRect, viewSize: CGSize) -> CGRect {
-        let x = visionRect.origin.x * viewSize.width
-        let y = (1 - visionRect.origin.y - visionRect.height) * viewSize.height
-        let width = visionRect.width * viewSize.width
-        let height = visionRect.height * viewSize.height
+        let viewAspect = viewSize.width / viewSize.height
+
+        var scaleX: CGFloat
+        var scaleY: CGFloat
+        var offsetX: CGFloat = 0
+        var offsetY: CGFloat = 0
+
+        if cameraAspectRatio < viewAspect {
+            // View wider than camera — width fills exactly, height overflows (cropped top/bottom)
+            let scaledHeight = viewSize.width / cameraAspectRatio
+            scaleX = viewSize.width
+            scaleY = scaledHeight
+            offsetY = (viewSize.height - scaledHeight) / 2
+        } else {
+            // View taller than camera — height fills exactly, width overflows (cropped left/right)
+            let scaledWidth = viewSize.height * cameraAspectRatio
+            scaleX = scaledWidth
+            scaleY = viewSize.height
+            offsetX = (viewSize.width - scaledWidth) / 2
+        }
+
+        let x = visionRect.origin.x * scaleX + offsetX
+        let y = (1 - visionRect.origin.y - visionRect.height) * scaleY + offsetY
+        let width = visionRect.width * scaleX
+        let height = visionRect.height * scaleY
+
         return CGRect(x: x, y: y, width: width, height: height)
     }
 
@@ -140,12 +177,15 @@ class EmojiOverlayService: ObservableObject {
 struct EmojiOverlay: Identifiable {
     let id: UUID
     let emoji: String
-    var position: CGPoint
-    var size: CGSize
+    var position: CGPoint           // top-left corner in view coords
+    var size: CGSize                // square emoji size (min dimension)
+    var boundingBoxSize: CGSize     // full rectangular bounding box in view coords
     var opacity: Double
     var scale: Double
     let detectionType: DetectionType
     var lastUpdated: Date
+    let label: String
+    let confidence: Float
 }
 
 // MARK: - OverlaySettings
@@ -156,4 +196,5 @@ struct OverlaySettings {
     var kalmanProcessNoise: Double = 0.01
     var enablePulse = false
     var showTrackingLayer = false
+    var displayMode: DisplayMode = .emoji
 }

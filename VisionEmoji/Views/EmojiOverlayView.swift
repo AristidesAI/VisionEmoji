@@ -33,31 +33,58 @@ struct EmojiOverlayItem: View {
 
     @State private var isPulsing = false
 
+    private var showBoxes: Bool {
+        settings.displayMode == .yolo || settings.displayMode == .debug || settings.showTrackingLayer
+    }
+
+    private var showEmoji: Bool {
+        settings.displayMode != .yolo
+    }
+
     var body: some View {
-        ZStack {
-            if settings.showTrackingLayer {
+        ZStack(alignment: .topLeading) {
+            // Full rectangular bounding box (yolo/debug modes)
+            if showBoxes {
                 Rectangle()
                     .stroke(Color(cgColor: overlay.detectionType.overlayColor), lineWidth: 2)
-                    .frame(width: overlay.size.width, height: overlay.size.height)
+                    .frame(width: overlay.boundingBoxSize.width, height: overlay.boundingBoxSize.height)
+
+                // Label + confidence badge
+                HStack(spacing: 3) {
+                    Text(overlay.label)
+                        .font(.system(size: 11, weight: .bold))
+                    Text(String(format: "%.0f%%", overlay.confidence * 100))
+                        .font(.system(size: 10, weight: .medium))
+                }
+                .foregroundColor(.white)
+                .padding(.horizontal, 4)
+                .padding(.vertical, 2)
+                .background(Color(cgColor: overlay.detectionType.overlayColor).opacity(0.85))
+                .cornerRadius(3)
+                .offset(y: -20)
             }
 
-            EmojiView(emoji: overlay.emoji, size: overlay.size)
-                .scaleEffect(isPulsing && settings.enablePulse ? 1.1 : 1.0)
-                .animation(
-                    settings.enablePulse
-                        ? .easeInOut(duration: 0.8).repeatForever(autoreverses: true)
-                        : .default,
-                    value: isPulsing
-                )
+            // Emoji centered in the bounding box
+            if showEmoji {
+                EmojiView(emoji: overlay.emoji, size: overlay.size)
+                    .scaleEffect(isPulsing && settings.enablePulse ? 1.1 : 1.0)
+                    .animation(
+                        settings.enablePulse
+                            ? .easeInOut(duration: 0.8).repeatForever(autoreverses: true)
+                            : .default,
+                        value: isPulsing
+                    )
+                    .frame(width: overlay.boundingBoxSize.width, height: overlay.boundingBoxSize.height)
+            }
         }
         .opacity(overlay.opacity)
         .scaleEffect(overlay.scale)
         .position(
-            x: overlay.position.x + overlay.size.width / 2,
-            y: overlay.position.y + overlay.size.height / 2
+            x: overlay.position.x + overlay.boundingBoxSize.width / 2,
+            y: overlay.position.y + overlay.boundingBoxSize.height / 2
         )
         .animation(.spring(response: 0.3, dampingFraction: 0.8), value: overlay.position)
-        .animation(.spring(response: 0.3, dampingFraction: 0.8), value: overlay.size)
+        .animation(.spring(response: 0.3, dampingFraction: 0.8), value: overlay.boundingBoxSize)
         .animation(.easeOut(duration: 0.3), value: overlay.opacity)
         .animation(.spring(response: 0.3, dampingFraction: 0.7), value: overlay.scale)
         .onAppear {
@@ -75,20 +102,26 @@ struct EmojiOverlayItem: View {
             emoji: "😄",
             position: CGPoint(x: 100, y: 100),
             size: CGSize(width: 80, height: 80),
+            boundingBoxSize: CGSize(width: 100, height: 120),
             opacity: 1.0,
             scale: 1.0,
             detectionType: .face,
-            lastUpdated: Date()
+            lastUpdated: Date(),
+            label: "face",
+            confidence: 0.92
         ),
         EmojiOverlay(
             id: UUID(),
             emoji: "🚗",
             position: CGPoint(x: 200, y: 300),
             size: CGSize(width: 100, height: 100),
+            boundingBoxSize: CGSize(width: 140, height: 100),
             opacity: 1.0,
             scale: 1.0,
             detectionType: .object,
-            lastUpdated: Date()
+            lastUpdated: Date(),
+            label: "car",
+            confidence: 0.78
         ),
     ]
 
