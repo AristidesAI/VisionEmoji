@@ -12,6 +12,10 @@ Tracked Features:
 - Objects (cars, people, animals, etc.)
 
 
+in order the priority of vision components:
+Object tracking and having the emoji follow the object is the highest priority, Identify objects and place emojis on them in realtime, When the object moves in camera frame, Move the emoji to follow the object, When the object leaves the camera frame, Remove the emoji from the screen by quickly fading the emoji out.
+After object tracking and emoji pinning is working, We will focus on other vision components, such as face tracking, body tracking, hand tracking, and object tracking.
+
 Users can change the camera feed to use the front or back facing camera, Along with all cameras including the wide angle and zoom, In scene where multiple objects are detected, the app will track the emojis onto those objects as the camera moves, Detect new objects and add new emojis at the center of the tracked objects reference point.
 
 Users can turn on and off the background vision model, and the object detection model, and the face detection model, and the body detection model, and the hand detection model.

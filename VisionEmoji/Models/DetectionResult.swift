@@ -2,73 +2,217 @@
 //  DetectionResult.swift
 //  VisionEmoji
 //
-//  Created by aristides lintzeris on 16/2/2026.
+//  Created by aristides lintzeris on 17/2/2026.
 //
 
 import Foundation
 import CoreGraphics
-import Vision
+
+struct DetectionResult: Identifiable, Equatable {
+    let id: UUID
+    let type: DetectionType
+    let label: String
+    let boundingBox: CGRect
+    let confidence: Float
+    let emoji: String
+
+    init(id: UUID = UUID(), type: DetectionType, label: String = "", boundingBox: CGRect, confidence: Float, emoji: String) {
+        self.id = id
+        self.type = type
+        self.label = label
+        self.boundingBox = boundingBox
+        self.confidence = confidence
+        self.emoji = emoji
+    }
+
+    static func == (lhs: DetectionResult, rhs: DetectionResult) -> Bool {
+        lhs.id == rhs.id
+    }
+}
+
+// MARK: - Detection Types
 
 enum DetectionType: String, CaseIterable {
-    case face
-    case handGesture
-    case building
-    case car
-    case object
-    case flower
-    case animal
-    case food
-    case fruit
-    case vehicle
-    case sport
-    case music
-    case technology
-    case clothing
-    case nature
-    case tool
-    
-    var displayName: String {
+    case object = "Object"
+    case face = "Face"
+    case hand = "Hand"
+    case body = "Body"
+
+    /// Higher-priority types win when bounding boxes overlap
+    var priority: Int {
         switch self {
-        case .face: return "Face"
-        case .handGesture: return "Hand Gesture"
-        case .building: return "Building"
-        case .car: return "Car"
-        case .object: return "Object"
-        case .flower: return "Flower"
-        case .animal: return "Animal"
-        case .food: return "Food"
-        case .fruit: return "Fruit"
-        case .vehicle: return "Vehicle"
-        case .sport: return "Sport"
-        case .music: return "Music"
-        case .technology: return "Technology"
-        case .clothing: return "Clothing"
-        case .nature: return "Nature"
-        case .tool: return "Tool"
+        case .face: 4
+        case .hand: 3
+        case .object: 2
+        case .body: 1
+        }
+    }
+
+    var overlayColor: CGColor {
+        switch self {
+        case .object: CGColor(red: 0, green: 1, blue: 0, alpha: 0.5)
+        case .face:   CGColor(red: 0, green: 0.5, blue: 1, alpha: 0.5)
+        case .hand:   CGColor(red: 1, green: 0.2, blue: 0.2, alpha: 0.5)
+        case .body:   CGColor(red: 1, green: 0.6, blue: 0, alpha: 0.5)
         }
     }
 }
 
-struct DetectionResult: Identifiable, Equatable {
-    let id = UUID()
-    let type: DetectionType
-    let boundingBox: CGRect
-    let confidence: Float
-    let emojiDisplay: EmojiDisplay
-    let timestamp: Date
-    
-    static func == (lhs: DetectionResult, rhs: DetectionResult) -> Bool {
-        return lhs.id == rhs.id
+// MARK: - YOLO Model Selection
+
+enum YOLOModel: String, CaseIterable, Identifiable {
+    case yolov3tiny = "YOLOv3 Tiny"
+    case yolo11n = "YOLO11 Nano"
+    case yolo26n = "YOLO26 Nano"
+
+    var id: String { rawValue }
+
+    var resourceName: String {
+        switch self {
+        case .yolov3tiny: "YOLOv3TinyFP16"
+        case .yolo11n: "yolo11n"
+        case .yolo26n: "yolo26n"
+        }
+    }
+
+    /// YOLO26n is end-to-end (no NMS pipeline) — outputs raw tensor [1, 300, 6]
+    var isEndToEnd: Bool {
+        switch self {
+        case .yolo26n: true
+        default: false
+        }
+    }
+
+    /// Model input resolution
+    var inputSize: CGFloat {
+        switch self {
+        case .yolov3tiny: 416
+        case .yolo11n, .yolo26n: 640
+        }
+    }
+
+    var subtitle: String {
+        switch self {
+        case .yolov3tiny: "17 MB  •  80 classes  •  Fastest"
+        case .yolo11n: "5 MB  •  80 classes  •  NMS pipeline"
+        case .yolo26n: "5 MB  •  80 classes  •  End-to-end"
+        }
     }
 }
+
+// MARK: - Emoji Mapping
 
 struct EmojiMapping {
-    static func emojiForType(_ type: DetectionType, confidence: Float) -> EmojiDisplay {
-        return EmojiAssetService.shared.getEmojiDisplay(for: type, confidence: confidence)
-    }
-}
 
-enum EmojiDisplay {
-    case animated(code: String)
-    case staticEmoji(emoji: String)
+    /// COCO 80-class labels in index order (0-79) — used for YOLO26n raw tensor decoding
+    static let cocoLabels: [String] = [
+        "person", "bicycle", "car", "motorcycle", "airplane",
+        "bus", "train", "truck", "boat", "traffic light",
+        "fire hydrant", "stop sign", "parking meter", "bench", "bird",
+        "cat", "dog", "horse", "sheep", "cow",
+        "elephant", "bear", "zebra", "giraffe", "backpack",
+        "umbrella", "handbag", "tie", "suitcase", "frisbee",
+        "skis", "snowboard", "sports ball", "kite", "baseball bat",
+        "baseball glove", "skateboard", "surfboard", "tennis racket", "bottle",
+        "wine glass", "cup", "fork", "knife", "spoon",
+        "bowl", "banana", "apple", "sandwich", "orange",
+        "broccoli", "carrot", "hot dog", "pizza", "donut",
+        "cake", "chair", "couch", "potted plant", "bed",
+        "dining table", "toilet", "tv", "laptop", "mouse",
+        "remote", "keyboard", "cell phone", "microwave", "oven",
+        "toaster", "sink", "refrigerator", "book", "clock",
+        "vase", "scissors", "teddy bear", "hair drier", "toothbrush",
+    ]
+
+    /// COCO label name → Apple emoji
+    static let cocoLabelToEmoji: [String: String] = [
+        "person": "🧑",
+        "bicycle": "🚲",
+        "car": "🚗",
+        "motorcycle": "🏍️",
+        "airplane": "✈️",
+        "bus": "🚌",
+        "train": "🚆",
+        "truck": "🚚",
+        "boat": "⛵",
+        "traffic light": "🚦",
+        "fire hydrant": "🧯",
+        "stop sign": "🛑",
+        "parking meter": "🅿️",
+        "bench": "🪑",
+        "bird": "🐦",
+        "cat": "🐱",
+        "dog": "🐶",
+        "horse": "🐴",
+        "sheep": "🐑",
+        "cow": "🐄",
+        "elephant": "🐘",
+        "bear": "🐻",
+        "zebra": "🦓",
+        "giraffe": "🦒",
+        "backpack": "🎒",
+        "umbrella": "☂️",
+        "handbag": "👜",
+        "tie": "👔",
+        "suitcase": "🧳",
+        "frisbee": "🥏",
+        "skis": "⛷️",
+        "snowboard": "🏂",
+        "sports ball": "⚽",
+        "kite": "🪁",
+        "baseball bat": "⚾",
+        "baseball glove": "🧤",
+        "skateboard": "🛹",
+        "surfboard": "🏄",
+        "tennis racket": "🎾",
+        "bottle": "🍾",
+        "wine glass": "🍷",
+        "cup": "☕",
+        "fork": "🍴",
+        "knife": "🔪",
+        "spoon": "🥄",
+        "bowl": "🥣",
+        "banana": "🍌",
+        "apple": "🍎",
+        "sandwich": "🥪",
+        "orange": "🍊",
+        "broccoli": "🥦",
+        "carrot": "🥕",
+        "hot dog": "🌭",
+        "pizza": "🍕",
+        "donut": "🍩",
+        "cake": "🎂",
+        "chair": "🪑",
+        "couch": "🛋️",
+        "potted plant": "🪴",
+        "bed": "🛏️",
+        "dining table": "🍽️",
+        "toilet": "🚽",
+        "tv": "📺",
+        "laptop": "💻",
+        "mouse": "🖱️",
+        "remote": "📱",
+        "keyboard": "⌨️",
+        "cell phone": "📱",
+        "microwave": "📦",
+        "oven": "🔥",
+        "toaster": "🍞",
+        "sink": "🚰",
+        "refrigerator": "🧊",
+        "book": "📖",
+        "clock": "🕐",
+        "vase": "🏺",
+        "scissors": "✂️",
+        "teddy bear": "🧸",
+        "hair drier": "💨",
+        "toothbrush": "🪥",
+    ]
+
+    /// Look up emoji by COCO class index (for YOLO26n raw tensor output)
+    static func emoji(forClassIndex index: Int) -> (label: String, emoji: String)? {
+        guard index >= 0 && index < cocoLabels.count else { return nil }
+        let label = cocoLabels[index]
+        let emoji = cocoLabelToEmoji[label] ?? "❓"
+        return (label, emoji)
+    }
 }

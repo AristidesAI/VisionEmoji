@@ -2,42 +2,54 @@
 //  CameraView.swift
 //  VisionEmoji
 //
-//  Created by aristides lintzeris on 16/2/2026.
+//  Created by aristides lintzeris on 17/2/2026.
 //
 
 import SwiftUI
 import AVFoundation
 
 struct CameraView: UIViewRepresentable {
-    @ObservedObject var cameraService: CameraService
-    
-    func makeUIView(context: Context) -> UIView {
-        let view = UIView()
-        
-        // Find current window scene for frame
-        if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene {
-            view.frame = windowScene.screen.bounds
-        }
-        
-        if let previewLayer = cameraService.previewLayer {
-            previewLayer.frame = view.bounds
-            view.layer.addSublayer(previewLayer)
-        }
-        
-        return view
+    @Bindable var cameraService: CameraService
+
+    func makeUIView(context: Context) -> CameraPreviewView {
+        let previewView = CameraPreviewView()
+        previewView.videoPreviewLayer.session = cameraService.session
+        return previewView
     }
-    
-    func updateUIView(_ uiView: UIView, context: Context) {
-        if let previewLayer = cameraService.previewLayer {
-            if previewLayer.superlayer == nil {
-                previewLayer.frame = uiView.bounds
-                uiView.layer.addSublayer(previewLayer)
-            }
-            
-            DispatchQueue.main.async {
-                previewLayer.frame = uiView.bounds
-            }
-        }
+
+    func updateUIView(_ uiView: CameraPreviewView, context: Context) {
+        // Update session if needed
+        uiView.videoPreviewLayer.session = cameraService.session
+    }
+}
+
+/// UIView that displays the camera preview
+class CameraPreviewView: UIView {
+    override class var layerClass: AnyClass {
+        AVCaptureVideoPreviewLayer.self
+    }
+
+    var videoPreviewLayer: AVCaptureVideoPreviewLayer {
+        layer as! AVCaptureVideoPreviewLayer
+    }
+
+    override init(frame: CGRect) {
+        super.init(frame: frame)
+        setupPreviewLayer()
+    }
+
+    required init?(coder: NSCoder) {
+        super.init(coder: coder)
+        setupPreviewLayer()
+    }
+
+    private func setupPreviewLayer() {
+        videoPreviewLayer.videoGravity = .resizeAspectFill
+    }
+
+    override func layoutSubviews() {
+        super.layoutSubviews()
+        videoPreviewLayer.frame = bounds
     }
 }
 
