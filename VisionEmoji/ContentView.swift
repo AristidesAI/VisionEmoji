@@ -6,27 +6,21 @@
 //
 
 import SwiftUI
-import Combine
 import AVFoundation
 
 struct ContentView: View {
-    @StateObject private var cameraService = CameraService()
+    @State private var cameraService = CameraService()
     @StateObject private var visionService = VisionService()
     @StateObject private var emojiOverlayService = EmojiOverlayService()
-    
+
     @State private var selectedTab = 0
     @State private var showSettingsMenu = false
-<<<<<<< HEAD
     @State private var isLoading = true
 
-=======
-    
-    // Performance optimization: Pre-warm the settings view
     private var settingsView: some View {
         SettingsOverlayView(visionService: visionService, overlayService: emojiOverlayService)
     }
-    
->>>>>>> parent of b614d2fa (1.0)
+
     var body: some View {
         ZStack {
             TabView(selection: $selectedTab) {
@@ -41,7 +35,7 @@ struct ContentView: View {
                     Text("Camera")
                 }
                 .tag(0)
-                
+
                 // Settings Tab (Trigger for Overlay)
                 Color.clear
                     .tabItem {
@@ -57,18 +51,12 @@ struct ContentView: View {
                     selectedTab = 0 // Keep on camera tab
                 }
             }
-<<<<<<< HEAD
 
-            // Reprocess Button
-=======
-            
-            // Camera Switcher Button (Bottom Left)
->>>>>>> parent of b614d2fa (1.0)
+            // Reload Button
             VStack {
                 Spacer()
                 HStack {
                     Button(action: {
-<<<<<<< HEAD
                         visionService.unloadAndReload()
                         emojiOverlayService.resetOverlays()
                     }) {
@@ -81,18 +69,9 @@ struct ContentView: View {
                         .foregroundColor(.white)
                         .padding(12)
                         .background(.ultraThinMaterial, in: Circle())
-=======
-                        cycleCamera()
-                    }) {
-                        Image(systemName: "arrow.triangle.2.circlepath.camera")
-                            .font(.system(size: 20, weight: .bold))
-                            .foregroundColor(.white)
-                            .padding(12)
-                            .background(.ultraThinMaterial, in: Circle())
->>>>>>> parent of b614d2fa (1.0)
                     }
                     .padding(.leading, 20)
-                    .padding(.bottom, 60) // Adjusted to be above the tab bar but not too high
+                    .padding(.bottom, 60)
                     Spacer()
                 }
             }
@@ -127,27 +106,15 @@ struct ContentView: View {
             EmojiAssetService.shared.preloadEssentialEmojis()
         }
     }
-<<<<<<< HEAD
-=======
-    
-    private func cycleCamera() {
-        if cameraService.cameraPosition == .back {
-            cameraService.switchCamera(to: .builtInWideAngleCamera, position: .front)
-        } else {
-            cameraService.switchCamera(to: .builtInWideAngleCamera, position: .back)
-        }
-    }
->>>>>>> parent of b614d2fa (1.0)
 }
 
 struct SettingsOverlayView: View {
     @ObservedObject var visionService: VisionService
     @ObservedObject var overlayService: EmojiOverlayService
-    
+
     var body: some View {
         NavigationView {
             Form {
-<<<<<<< HEAD
                 Section("Classification") {
                     taskRow("Per-Object Classification", isOn: $visionService.isClassificationEnabled,
                             ms: visionService.classifyProcessingTime)
@@ -238,45 +205,29 @@ struct SettingsOverlayView: View {
                     if visionService.isClassificationEnabled {
                         metricRow("Classification", value: String(format: "%.0f ms", visionService.classifyProcessingTime))
                         metricRow("Cls Cached", value: "\(visionService.classificationsCached)")
-=======
-                Section("Detection Types") {
-                    Toggle("Faces", isOn: $visionService.isFaceDetectionEnabled)
-                    Toggle("Hands", isOn: $visionService.isHandGestureDetectionEnabled)
-                    Toggle("Buildings", isOn: $visionService.isBuildingDetectionEnabled)
-                    Toggle("Cars", isOn: $visionService.isCarDetectionEnabled)
-                    Toggle("Objects", isOn: $visionService.isObjectDetectionEnabled)
-                }
-                
-                Section("Visuals") {
-                    Toggle("Animated Emojis", isOn: $overlayService.overlaySettings.showAnimations)
-                    Toggle("Show Vision Tracking Layer", isOn: $overlayService.overlaySettings.showTrackingLayer)
-                }
-                
-                Section("Performance") {
-                    Slider(value: $overlayService.overlaySettings.smoothingFactor, in: 0...1) {
-                        Text("Smoothing")
-                    } minimumValueLabel: {
-                        Text("Off")
-                    } maximumValueLabel: {
-                        Text("High")
->>>>>>> parent of b614d2fa (1.0)
                     }
                     metricRow("Tracked", value: "\(visionService.detectionResults.count)")
                 } header: {
                     Text("Performance")
                 } footer: {
-                    Text("Made by Aristides Lintzeris & YOLO26")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                        .frame(maxWidth: .infinity, alignment: .center)
-                        .padding(.top, 12)
+                    VStack(spacing: 8) {
+                        Text("Real-time YOLO26 object detection with emoji overlay. Uses Apple Neural Engine for on-device ML inference. Best experienced on iPhone 16 or later.")
+                            .font(.caption2)
+                            .foregroundColor(.secondary)
+                            .multilineTextAlignment(.center)
+
+                        Text("Made by Aristides Lintzeris & YOLO26")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
+                    .frame(maxWidth: .infinity, alignment: .center)
+                    .padding(.top, 12)
                 }
             }
             .navigationTitle("Settings")
             .navigationBarTitleDisplayMode(.inline)
         }
     }
-<<<<<<< HEAD
 
     private var labelPriorityDescription: String {
         let val = visionService.labelPriority
@@ -363,20 +314,16 @@ struct SettingsOverlayView: View {
             ), in: range, step: step)
         }
     }
-=======
->>>>>>> parent of b614d2fa (1.0)
 }
 
 struct CameraTabView: View {
-    @ObservedObject var cameraService: CameraService
+    var cameraService: CameraService
     @ObservedObject var visionService: VisionService
     @ObservedObject var overlayService: EmojiOverlayService
-    
+
     @State private var viewSize = CGSize.zero
     @State private var showingPermissionAlert = false
-    
-    @State private var cancellables = Set<AnyCancellable>()
-    
+
     var body: some View {
         GeometryReader { geometry in
             ZStack {
@@ -384,23 +331,18 @@ struct CameraTabView: View {
                     // Camera preview
                     CameraView(cameraService: cameraService)
                         .ignoresSafeArea()
-                    
+
                     // Emoji overlays
                     EmojiOverlayView(
                         overlays: overlayService.overlays,
                         settings: overlayService.overlaySettings
                     )
                     .ignoresSafeArea()
-<<<<<<< HEAD
                     .allowsHitTesting(false)
 
-=======
-                    
-                    // Controls overlay
->>>>>>> parent of b614d2fa (1.0)
                     VStack {
                         Spacer()
-                        
+
                         controlsView
                     }
                 } else {
@@ -419,7 +361,6 @@ struct CameraTabView: View {
                     setupServices()
                 }
             }
-<<<<<<< HEAD
             .onChange(of: geometry.size) { _, _ in
                 let insets = geometry.safeAreaInsets
                 viewSize = CGSize(
@@ -432,12 +373,6 @@ struct CameraTabView: View {
             }
             .onChange(of: visionService.detectionResults) { _, results in
                 overlayService.updateOverlays(with: results, viewSize: viewSize)
-=======
-            .onChange(of: cameraService.isAuthorized) { _, isAuthorized in
-                if isAuthorized {
-                    setupServices()
-                }
->>>>>>> parent of b614d2fa (1.0)
             }
             .alert("Camera Access Required", isPresented: $showingPermissionAlert) {
                 Button("Settings", action: openSettings)
@@ -447,11 +382,11 @@ struct CameraTabView: View {
             }
         }
     }
-    
+
     private var controlsView: some View {
         HStack(spacing: 20) {
             Spacer()
-            
+
             // Detection status indicator
             HStack(spacing: 8) {
                 Image(systemName: visionService.isProcessing ? "eye.circle.fill" : "eye.slash.circle.fill")
@@ -467,33 +402,14 @@ struct CameraTabView: View {
         }
         .padding()
     }
-    
+
     private func setupServices() {
-        // Configure and start camera session
-        cameraService.configureSession()
-        cameraService.startSession()
-        
-        // Setup camera frame processing
-        cameraService.onFrameProcessed = { [weak visionService] pixelBuffer in
+        cameraService.configureSession { [weak visionService] pixelBuffer in
             visionService?.processFrame(pixelBuffer)
         }
-        
-        // Link camera position to vision service for optimization
-        cameraService.$cameraPosition
-            .sink { [weak visionService] position in
-                visionService?.updateCameraPosition(isFront: position == .front)
-            }
-            .store(in: &cancellables)
-        
-        // Setup vision results processing
-        visionService.$detectionResults
-            .receive(on: DispatchQueue.main)
-            .sink { [weak overlayService] results in
-                overlayService?.updateOverlays(with: results, viewSize: viewSize)
-            }
-            .store(in: &cancellables)
+        cameraService.startSession()
     }
-    
+
     private func openSettings() {
         if let settingsUrl = URL(string: UIApplication.openSettingsURLString) {
             UIApplication.shared.open(settingsUrl)

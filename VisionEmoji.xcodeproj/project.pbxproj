@@ -21,12 +21,9 @@
 		DF2C778E2F43335D00F1F0E7 /* AnimatedEmojiView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DF2C778F2F43335D00F1F0E7 /* AnimatedEmojiView.swift */; };
 		DF2C77902F43335D00F1F0E7 /* PermissionRequestView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DF2C77912F43335D00F1F0E7 /* PermissionRequestView.swift */; };
 		DF2C77922F43335D00F1F0E7 /* GlassEffectContainer.swift in Sources */ = {isa = PBXBuildFile; fileRef = DF2C77932F43335D00F1F0E7 /* GlassEffectContainer.swift */; };
-<<<<<<< HEAD
 		DF2C779A2F43335D00F1F0E7 /* EmojiOverlayView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DF2C779B2F43335D00F1F0E7 /* EmojiOverlayView.swift */; };
 		DF2C78872F443F5900F1F0E7 /* yolo26m.mlpackage in Sources */ = {isa = PBXBuildFile; fileRef = DF2C78782F443F5900F1F0E7 /* yolo26m.mlpackage */; };
 		DF2C789F2F4492B900F1F0E7 /* seenoevil.icon in Resources */ = {isa = PBXBuildFile; fileRef = DF2C789E2F4492B900F1F0E7 /* seenoevil.icon */; };
-=======
->>>>>>> parent of b614d2fa (1.0)
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -46,13 +43,9 @@
 		DF2C778F2F43335D00F1F0E7 /* AnimatedEmojiView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnimatedEmojiView.swift; sourceTree = "<group>"; };
 		DF2C77912F43335D00F1F0E7 /* PermissionRequestView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PermissionRequestView.swift; sourceTree = "<group>"; };
 		DF2C77932F43335D00F1F0E7 /* GlassEffectContainer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlassEffectContainer.swift; sourceTree = "<group>"; };
-<<<<<<< HEAD
 		DF2C779B2F43335D00F1F0E7 /* EmojiOverlayView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmojiOverlayView.swift; sourceTree = "<group>"; };
 		DF2C78782F443F5900F1F0E7 /* yolo26m.mlpackage */ = {isa = PBXFileReference; lastKnownFileType = folder.mlpackage; path = yolo26m.mlpackage; sourceTree = "<group>"; };
 		DF2C789E2F4492B900F1F0E7 /* seenoevil.icon */ = {isa = PBXFileReference; lastKnownFileType = folder.iconcomposer.icon; path = seenoevil.icon; sourceTree = "<group>"; };
-=======
-		DF2C77972F43335D00F1F0E7 /* AnimatedEmojis */ = {isa = PBXFileReference; lastKnownFileType = folder; path = AnimatedEmojis; sourceTree = "<group>"; };
->>>>>>> parent of b614d2fa (1.0)
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -75,16 +68,21 @@
 			);
 			sourceTree = "<group>";
 		};
+		DF2C77622F43335C00F1F0E7 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				DF2C77612F43335C00F1F0E7 /* VisionEmoji.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
 		DF2C77632F43335C00F1F0E7 /* VisionEmoji */ = {
 			isa = PBXGroup;
 			children = (
 				DF2C77702F43335D00F1F0E7 /* VisionEmojiApp.swift */,
 				DF2C77722F43335D00F1F0E7 /* ContentView.swift */,
-<<<<<<< HEAD
 				DF2C78782F443F5900F1F0E7 /* yolo26m.mlpackage */,
 				CCDD00022F46000000F1F0E7 /* yolo26m-cls.mlpackage */,
-=======
->>>>>>> parent of b614d2fa (1.0)
 				DF2C77742F43335D00F1F0E7 /* Assets.xcassets */,
 				DF2C77762F43335D00F1F0E7 /* Info.plist */,
 				DF2C77942F43335D00F1F0E7 /* Services */,
@@ -92,14 +90,6 @@
 				DF2C77962F43335D00F1F0E7 /* Models */,
 			);
 			path = VisionEmoji;
-			sourceTree = "<group>";
-		};
-		DF2C77622F43335C00F1F0E7 /* Products */ = {
-			isa = PBXGroup;
-			children = (
-				DF2C77612F43335C00F1F0E7 /* VisionEmoji.app */,
-			);
-			name = Products;
 			sourceTree = "<group>";
 		};
 		DF2C77942F43335D00F1F0E7 /* Services */ = {
@@ -121,6 +111,7 @@
 				DF2C778F2F43335D00F1F0E7 /* AnimatedEmojiView.swift */,
 				DF2C77912F43335D00F1F0E7 /* PermissionRequestView.swift */,
 				DF2C77932F43335D00F1F0E7 /* GlassEffectContainer.swift */,
+				DF2C779B2F43335D00F1F0E7 /* EmojiOverlayView.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -176,6 +167,7 @@
 				Base,
 			);
 			mainGroup = DF2C77582F43335B00F1F0E7;
+			preferredProjectObjectVersion = 77;
 			productRefGroup = DF2C77622F43335C00F1F0E7 /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
@@ -191,11 +183,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				DF2C77732F43335D00F1F0E7 /* Assets.xcassets in Resources */,
-<<<<<<< HEAD
 				DF2C789F2F4492B900F1F0E7 /* seenoevil.icon in Resources */,
-=======
-				DF2C77982F43335D00F1F0E7 /* AnimatedEmojis in Resources */,
->>>>>>> parent of b614d2fa (1.0)
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -218,12 +206,9 @@
 				DF2C778E2F43335D00F1F0E7 /* AnimatedEmojiView.swift in Sources */,
 				DF2C77902F43335D00F1F0E7 /* PermissionRequestView.swift in Sources */,
 				DF2C77922F43335D00F1F0E7 /* GlassEffectContainer.swift in Sources */,
-<<<<<<< HEAD
 				DF2C779A2F43335D00F1F0E7 /* EmojiOverlayView.swift in Sources */,
 				DF2C78872F443F5900F1F0E7 /* yolo26m.mlpackage in Sources */,
 				CCDD00012F46000000F1F0E7 /* yolo26m-cls.mlpackage in Sources */,
-=======
->>>>>>> parent of b614d2fa (1.0)
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -356,6 +341,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = YES;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 8S7P33V94X;
@@ -395,6 +381,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = YES;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 8S7P33V94X;

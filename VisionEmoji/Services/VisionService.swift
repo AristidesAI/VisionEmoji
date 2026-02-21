@@ -35,11 +35,18 @@ class VisionService: ObservableObject {
     // Processing controls
     @Published var targetFPS: Int = 30
 
-    // Performance metrics
+    // Performance metrics (throttled to avoid UI re-render storms)
     @Published var objectProcessingTime: Double = 0
     @Published var classifyProcessingTime: Double = 0
     @Published var fps: Double = 0
     @Published var classificationsCached: Int = 0
+
+    // Internal metric accumulators (updated every frame, published throttled)
+    private var internalFPS: Double = 0
+    private var internalDetMs: Double = 0
+    private var internalClsMs: Double = 0
+    private var lastMetricPublish: CFAbsoluteTime = 0
+    private let metricPublishInterval: Double = 0.5
 
     // MARK: - Private Properties
 
@@ -64,11 +71,36 @@ class VisionService: ObservableObject {
     // CIContext for efficient cropping (reusable, thread-safe)
     nonisolated(unsafe) private let ciContext = CIContext(options: [.useSoftwareRenderer: false])
 
+    // Device-optimized compute units
+    nonisolated(unsafe) private let preferredComputeUnits: MLComputeUnits = {
+        // A17 Pro+ (iPhone 15 Pro, 16 series) benefit from .cpuAndNeuralEngine
+        // to avoid GPU contention with camera/display pipeline.
+        // Older devices use .all to let the system decide.
+        var sysInfo = utsname()
+        uname(&sysInfo)
+        let machine = withUnsafePointer(to: &sysInfo.machine) {
+            $0.withMemoryRebound(to: CChar.self, capacity: 1) {
+                String(cString: $0)
+            }
+        }
+
+        // iPhone16,* = iPhone 15 Pro/Max (A17 Pro)
+        // iPhone17,* = iPhone 16 series (A18/A18 Pro)
+        // iPhone18,* = iPhone 17 series (A19)
+        if machine.hasPrefix("iPhone16,") ||
+           machine.hasPrefix("iPhone17,") ||
+           machine.hasPrefix("iPhone18,") {
+            return .cpuAndNeuralEngine
+        }
+        return .all
+    }()
+
     nonisolated(unsafe) private let objectLifetime: TimeInterval = 1.5
 
     // Frame counter & FPS cap
     private var frameCounter = 0
     private var lastProcessedTime: CFAbsoluteTime = 0
+    private var lastCleanupTime: CFAbsoluteTime = 0
 
     // FPS tracking (exponential smoothing)
     private var lastFrameTimestamp: CFAbsoluteTime = 0
@@ -107,7 +139,7 @@ class VisionService: ObservableObject {
 
         do {
             let config = MLModelConfiguration()
-            config.computeUnits = .all
+            config.computeUnits = preferredComputeUnits
 
             let mlModel = try MLModel(contentsOf: modelURL, configuration: config)
             let vnModel = try VNCoreMLModel(for: mlModel)
@@ -150,8 +182,13 @@ class VisionService: ObservableObject {
         let priority = labelPriority
 
         updateFPS()
-        cleanupOldObjects()
-        cleanupClassificationCache()
+
+        // Throttle cleanup to every 500ms instead of every frame
+        if now - lastCleanupTime >= 0.5 {
+            lastCleanupTime = now
+            cleanupOldObjects()
+            cleanupClassificationCache()
+        }
 
         let group = DispatchGroup()
 
@@ -195,7 +232,7 @@ class VisionService: ObservableObject {
         // Models auto-reload on next processFrame()
     }
 
-    // MARK: - FPS Tracking (Exponential Smoothing)
+    // MARK: - FPS Tracking (Exponential Smoothing, throttled publishing)
 
     private func updateFPS() {
         let now = CFAbsoluteTimeGetCurrent()
@@ -203,10 +240,19 @@ class VisionService: ObservableObject {
             let dt = now - lastFrameTimestamp
             if dt > 0 {
                 let instantFPS = 1.0 / dt
-                fps = 0.05 * instantFPS + 0.95 * fps
+                internalFPS = 0.05 * instantFPS + 0.95 * internalFPS
             }
         }
         lastFrameTimestamp = now
+
+        // Throttle @Published metric updates to reduce SwiftUI re-renders
+        if now - lastMetricPublish >= metricPublishInterval {
+            lastMetricPublish = now
+            fps = internalFPS
+            objectProcessingTime = internalDetMs
+            classifyProcessingTime = internalClsMs
+            classificationsCached = internalClsCached
+        }
     }
 
     // MARK: - Object Detection (YOLO26m — end-to-end, tensor [1, 300, 6])
@@ -227,7 +273,7 @@ class VisionService: ObservableObject {
 
             let elapsed = CFAbsoluteTimeGetCurrent() - startTime
             DispatchQueue.main.async {
-                self.objectProcessingTime = 0.05 * (elapsed * 1000) + 0.95 * self.objectProcessingTime
+                self.internalDetMs = 0.05 * (elapsed * 1000) + 0.95 * self.internalDetMs
             }
         }
 
@@ -363,7 +409,7 @@ class VisionService: ObservableObject {
 
             let elapsed = CFAbsoluteTimeGetCurrent() - startTime
             DispatchQueue.main.async {
-                self.classifyProcessingTime = 0.05 * (elapsed * 1000) + 0.95 * self.classifyProcessingTime
+                self.internalClsMs = 0.05 * (elapsed * 1000) + 0.95 * self.internalClsMs
             }
         }
 
@@ -430,6 +476,8 @@ class VisionService: ObservableObject {
         }
     }
 
+    private var internalClsCached: Int = 0
+
     private func cleanupClassificationCache() {
         clsCacheLock.lock()
         defer { clsCacheLock.unlock() }
@@ -438,9 +486,7 @@ class VisionService: ObservableObject {
         clsCache = clsCache.filter { _, entry in
             now.timeIntervalSince(entry.timestamp) < 2.0
         }
-        DispatchQueue.main.async { [count = clsCache.count] in
-            self.classificationsCached = count
-        }
+        internalClsCached = clsCache.count
     }
 
     private func resolveOverlapsAndPublish(maxDet: Int, clsThreshold: Float, priority: Float) {

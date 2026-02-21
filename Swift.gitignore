@@ -20,7 +20,8 @@ xcuserdata/
 *.so
 *.dylib
 
-venv_export/
+* venv_export/
+* yolo-export-env/
 
 ## Playgrounds
 timeline.xctimeline

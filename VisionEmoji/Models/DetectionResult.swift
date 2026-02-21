@@ -7,7 +7,6 @@
 
 import Foundation
 import CoreGraphics
-<<<<<<< HEAD
 import AVFoundation
 
 struct DetectionResult: Identifiable, Equatable {
@@ -69,51 +68,10 @@ enum YOLOTask: String, CaseIterable, Identifiable {
         switch self {
         case .detect: "yolo26m"
         case .classify: "yolo26m-cls"
-=======
-import Vision
-
-enum DetectionType: String, CaseIterable {
-    case face
-    case handGesture
-    case building
-    case car
-    case object
-    case flower
-    case animal
-    case food
-    case fruit
-    case vehicle
-    case sport
-    case music
-    case technology
-    case clothing
-    case nature
-    case tool
-    
-    var displayName: String {
-        switch self {
-        case .face: return "Face"
-        case .handGesture: return "Hand Gesture"
-        case .building: return "Building"
-        case .car: return "Car"
-        case .object: return "Object"
-        case .flower: return "Flower"
-        case .animal: return "Animal"
-        case .food: return "Food"
-        case .fruit: return "Fruit"
-        case .vehicle: return "Vehicle"
-        case .sport: return "Sport"
-        case .music: return "Music"
-        case .technology: return "Technology"
-        case .clothing: return "Clothing"
-        case .nature: return "Nature"
-        case .tool: return "Tool"
->>>>>>> parent of b614d2fa (1.0)
         }
     }
 }
 
-<<<<<<< HEAD
 // MARK: - Camera Descriptor
 
 struct CameraDescriptor: Identifiable, Equatable {
@@ -140,23 +98,9 @@ struct CameraDescriptor: Identifiable, Equatable {
 
 struct ModelKey: Hashable {
     let task: YOLOTask
-=======
-struct DetectionResult: Identifiable, Equatable {
-    let id = UUID()
-    let type: DetectionType
-    let boundingBox: CGRect
-    let confidence: Float
-    let emojiDisplay: EmojiDisplay
-    let timestamp: Date
-    
-    static func == (lhs: DetectionResult, rhs: DetectionResult) -> Bool {
-        return lhs.id == rhs.id
-    }
->>>>>>> parent of b614d2fa (1.0)
 }
 
 struct EmojiMapping {
-<<<<<<< HEAD
 
     static let cocoLabels: [String] = [
         "person", "bicycle", "car", "motorcycle", "airplane",
@@ -283,10 +227,6 @@ struct EmojiMapping {
         let label = cocoLabels[index]
         let emoji = cocoLabelToEmojiPair[label]?.primary ?? "❓"
         return (label, emoji)
-=======
-    static func emojiForType(_ type: DetectionType, confidence: Float) -> EmojiDisplay {
-        return EmojiAssetService.shared.getEmojiDisplay(for: type, confidence: confidence)
->>>>>>> parent of b614d2fa (1.0)
     }
 
     // MARK: - ImageNet Label → Emoji Mapping (for per-object classification)
@@ -967,9 +907,4 @@ struct EmojiMapping {
         // Examples: "chainlink fence", "half track", "knot", "coil",
         // "disk brake", "grille", "manhole cover", "nipple", etc.
     ]
-}
-
-enum EmojiDisplay {
-    case animated(code: String)
-    case staticEmoji(emoji: String)
 }

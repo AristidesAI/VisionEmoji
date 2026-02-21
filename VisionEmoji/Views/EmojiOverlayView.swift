@@ -106,6 +106,17 @@ struct EmojiOverlayItem: View {
     }
 }
 
+struct EmojiView: View {
+    let emoji: String
+    let size: CGSize
+
+    var body: some View {
+        Text(emoji)
+            .font(.system(size: min(size.width, size.height) * 0.8))
+            .minimumScaleFactor(0.3)
+    }
+}
+
 #Preview {
     let sampleOverlays = [
         EmojiOverlay(
