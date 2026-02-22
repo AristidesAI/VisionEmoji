@@ -11,6 +11,16 @@
     <link rel="icon" href="seenoevil Exports/seenoevil-iOS-Default-1024x1024@1x.png" type="image/png">
 </head>
 <body>
+    <!-- Interactive Gradient Background -->
+    <div class="gradient-bg"></div>
+    <div class="gradient-blob blob-1"></div>
+    <div class="gradient-blob blob-2"></div>
+    <div class="gradient-blob blob-3"></div>
+    <div class="gradient-blob blob-4"></div>
+    <div class="gradient-blob blob-5"></div>
+    <div class="blob-mouse"></div>
+    <div class="noise-overlay"></div>
+
     <!-- Floating Emoji Background -->
     <div class="emoji-bg" aria-hidden="true">
         <span class="floating-emoji" style="--delay: 0s; --x: 5%; --duration: 18s; --size: 2.2rem;">🐶</span>
@@ -220,5 +230,27 @@
             <div class="footer-emojis">🙈 🐶 🚗 🍕 📱 🐱 ✈️ 🌻 🎸 🏀</div>
         </div>
     </footer>
+
+    <!-- Mouse-tracking gradient blob -->
+    <script>
+    (function() {
+        var blob = document.querySelector('.blob-mouse');
+        if (!blob) return;
+        var mouseX = window.innerWidth / 2;
+        var mouseY = window.innerHeight / 2;
+        blob.style.left = mouseX + 'px';
+        blob.style.top = mouseY + 'px';
+
+        document.addEventListener('mousemove', function(e) {
+            blob.style.left = e.clientX + 'px';
+            blob.style.top = e.clientY + 'px';
+
+            // Shift gradient hue based on mouse position
+            var hueShift = Math.round((e.clientX / window.innerWidth) * 40);
+            var satShift = Math.round((e.clientY / window.innerHeight) * 20);
+            blob.style.background = 'radial-gradient(circle, hsla(' + (140 + hueShift) + ', ' + (50 + satShift) + '%, 50%, 0.25) 0%, hsla(' + (280 + hueShift) + ', 50%, 50%, 0.15) 40%, transparent 70%)';
+        });
+    })();
+    </script>
 </body>
 </html>
