@@ -61,37 +61,6 @@
         </div>
     </header>
 
-    <!-- How It Works -->
-    <section class="section how-it-works">
-        <h2 class="section-title">How It Works</h2>
-        <p class="section-subtitle">A blazing-fast 4-step pipeline running entirely on-device</p>
-        <div class="pipeline">
-            <div class="pipeline-step">
-                <div class="step-icon">📷</div>
-                <div class="step-label">Camera</div>
-                <div class="step-detail">Ultrawide AVCaptureSession delivers raw CVPixelBuffer frames</div>
-            </div>
-            <div class="pipeline-arrow">→</div>
-            <div class="pipeline-step">
-                <div class="step-icon">🔍</div>
-                <div class="step-label">YOLO26m Detect</div>
-                <div class="step-detail">640x640 FP16 model detects up to 80 COCO object classes</div>
-            </div>
-            <div class="pipeline-arrow">→</div>
-            <div class="pipeline-step">
-                <div class="step-icon">🧠</div>
-                <div class="step-label">Classification</div>
-                <div class="step-detail">Per-object crop → YOLO26m-cls for 1000 ImageNet classes</div>
-            </div>
-            <div class="pipeline-arrow">→</div>
-            <div class="pipeline-step">
-                <div class="step-icon">✨</div>
-                <div class="step-label">Emoji Overlay</div>
-                <div class="step-detail">Kalman-filtered positions with smooth SwiftUI overlays</div>
-            </div>
-        </div>
-    </section>
-
     <!-- Screenshots -->
     <section class="section screenshots">
         <h2 class="section-title">See It In Action</h2>
@@ -178,42 +147,6 @@
             <a href="https://coremltools.readme.io/" class="tech-pill" target="_blank" rel="noopener">
                 <span class="pill-icon">🔧</span> coremltools
             </a>
-        </div>
-    </section>
-
-    <!-- Architecture -->
-    <section class="section architecture">
-        <h2 class="section-title">Architecture</h2>
-        <p class="section-subtitle">Clean pipeline architecture with separation of concerns</p>
-        <div class="arch-diagram">
-<pre>
-┌─────────────────────────────────────────────────────────────────┐
-│                        CameraService                            │
-│   AVCaptureSession → ultrawide camera → CVPixelBuffer frames    │
-└──────────────────────────────┬──────────────────────────────────┘
-                               │ onFrameProcessed callback
-                               ▼
-┌─────────────────────────────────────────────────────────────────┐
-│                        VisionService                            │
-│   ┌──────────────────┐    ┌───────────────────────────────┐     │
-│   │ YOLO26m Detect   │───▶│ Per-Object Crop Classification│     │
-│   │ 640×640 → [1,300,6]   │ 224×224 → ImageNet 1000      │     │
-│   └──────────────────┘    └───────────────────────────────┘     │
-│                    Label Blending (priority slider)              │
-└──────────────────────────────┬──────────────────────────────────┘
-                               │ [DetectionResult] via @Published
-                               ▼
-┌─────────────────────────────────────────────────────────────────┐
-│                     EmojiOverlayService                         │
-│          Kalman filter smoothing → [EmojiOverlay]               │
-└──────────────────────────────┬──────────────────────────────────┘
-                               │
-                               ▼
-┌─────────────────────────────────────────────────────────────────┐
-│                    SwiftUI Overlay Views                         │
-│            EmojiOverlayView → ContentView                       │
-└─────────────────────────────────────────────────────────────────┘
-</pre>
         </div>
     </section>
 
