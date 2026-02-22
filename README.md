@@ -33,15 +33,15 @@
 ## Screenshots
 
 <p align="center">
-  <img src="screenshots/IMG_6377.PNG" width="180" alt="Dog detection with emoji overlay" />
+  <img src="screenshots/IMG_6377.PNG" width="130" alt="Dog detection with emoji overlay" />
   &nbsp;
-  <img src="screenshots/IMG_6341.PNG" width="180" alt="Living room scene detection" />
+  <img src="screenshots/IMG_6341.PNG" width="130" alt="Living room scene detection" />
   &nbsp;
-  <img src="screenshots/IMG_6342.PNG" width="180" alt="Kitchen objects detection" />
+  <img src="screenshots/IMG_6342.PNG" width="130" alt="Kitchen objects detection" />
   &nbsp;
-  <img src="screenshots/IMG_6335.PNG" width="180" alt="Workspace with 9 objects tracked" />
+  <img src="screenshots/IMG_6335.PNG" width="130" alt="Workspace with 9 objects tracked" />
   &nbsp;
-  <img src="screenshots/IMG_6338.PNG" width="180" alt="Debug mode with bounding boxes" />
+  <img src="screenshots/IMG_6338.PNG" width="130" alt="Debug mode with bounding boxes" />
 </p>
 
 <p align="center">
