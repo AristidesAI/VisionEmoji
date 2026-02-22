@@ -101,8 +101,10 @@ struct ContentView: View {
                 .presentationDetents([.medium, .large])
                 .presentationBackgroundInteraction(.enabled(upThrough: .medium))
         }
-        .onAppear {
-            // Preload essential emojis when app launches
+        .task {
+            // Defer emoji preload until after first frame renders
+            // This avoids blocking the main thread during app launch
+            try? await Task.sleep(nanoseconds: 500_000_000)
             EmojiAssetService.shared.preloadEssentialEmojis()
         }
     }
@@ -404,8 +406,10 @@ struct CameraTabView: View {
     }
 
     private func setupServices() {
-        cameraService.configureSession { [weak visionService] pixelBuffer in
-            visionService?.processFrame(pixelBuffer)
+        // Capture a local reference to avoid repeated weak-self overhead per frame
+        let vision = visionService
+        cameraService.configureSession { pixelBuffer in
+            vision.processFrame(pixelBuffer)
         }
         cameraService.startSession()
     }

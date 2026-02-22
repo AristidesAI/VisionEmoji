@@ -105,11 +105,18 @@ class VisionService: ObservableObject {
     // FPS tracking (exponential smoothing)
     private var lastFrameTimestamp: CFAbsoluteTime = 0
 
+    // Avoid Date() allocations in hot path — use CFAbsoluteTime
+    nonisolated(unsafe) private var lastSeenTimes: [UUID: CFAbsoluteTime] = [:]
+    nonisolated(unsafe) private var lastSeenTimesLock = NSLock()
+
+    // Flag to track if detection model is loaded (for loading overlay)
+    private var detectionModelReady = false
+
     // MARK: - Init
 
     init() {
-        ensureModelLoaded(task: .detect)
-        ensureModelLoaded(task: .classify)
+        // Defer all model loading — models will lazy-load on first frame/classification
+        // This avoids blocking app startup with heavy CoreML compilation
     }
 
     // MARK: - Model Loading
@@ -165,53 +172,57 @@ class VisionService: ObservableObject {
 
     // MARK: - Public Methods
 
-    func processFrame(_ pixelBuffer: CVPixelBuffer) {
-        // FPS cap gating
+    nonisolated func processFrame(_ pixelBuffer: CVPixelBuffer) {
+        // FPS cap gating — entirely off main thread
         let now = CFAbsoluteTimeGetCurrent()
-        guard now - lastProcessedTime >= 1.0 / Double(targetFPS) else { return }
-        lastProcessedTime = now
 
-        frameCounter += 1
+        // Read targetFPS without main-actor hop (atomic-like Int read)
+        let targetInterval = 1.0 / Double(nonisolated(unsafe) targetFPS)
+        let lastProcessed = nonisolated(unsafe) lastProcessedTime
+        guard now - lastProcessed >= targetInterval else { return }
 
-        // Capture settings on main actor before dispatching
-        let threshold = confidenceThreshold
-        let maxDet = maxDetections
-        let clsOn = isClassificationEnabled
-        let frame = frameCounter
-        let clsThreshold = classificationConfidenceThreshold
-        let priority = labelPriority
+        // Capture settings snapshot (safe reads of value types)
+        let threshold = nonisolated(unsafe) confidenceThreshold
+        let maxDet = nonisolated(unsafe) maxDetections
+        let clsOn = nonisolated(unsafe) isClassificationEnabled
+        let clsThreshold = nonisolated(unsafe) classificationConfidenceThreshold
+        let priority = nonisolated(unsafe) labelPriority
 
-        updateFPS()
-
-        // Throttle cleanup to every 500ms instead of every frame
-        if now - lastCleanupTime >= 0.5 {
-            lastCleanupTime = now
-            cleanupOldObjects()
-            cleanupClassificationCache()
-        }
-
-        let group = DispatchGroup()
-
-        // Primary: YOLO26m detection (every frame)
-        group.enter()
-        detectionQueue.async { [weak self] in
-            self?.performDetection(on: pixelBuffer, threshold: threshold, maxDet: maxDet)
-            group.leave()
-        }
-
-        group.notify(queue: .main) { [weak self] in
+        // Update timing on main actor
+        DispatchQueue.main.async { [weak self] in
             guard let self = self else { return }
+            self.lastProcessedTime = now
+            self.frameCounter += 1
+            self.updateFPS()
+
+            // Throttle cleanup to every 500ms
+            if now - self.lastCleanupTime >= 0.5 {
+                self.lastCleanupTime = now
+                self.cleanupOldObjects(now: now)
+                self.cleanupClassificationCache()
+            }
+        }
+
+        let frame = nonisolated(unsafe) frameCounter
+
+        // Primary: YOLO26m detection (directly on detection queue)
+        detectionQueue.async { [weak self] in
+            guard let self = self else { return }
+            self.performDetection(on: pixelBuffer, threshold: threshold, maxDet: maxDet)
 
             // After detection, optionally run per-object classification
             if clsOn && frame % 3 == 0 {
-                self.dispatchPerObjectClassification(
+                self.performPerObjectClassification(
                     pixelBuffer: pixelBuffer,
                     clsThreshold: clsThreshold,
                     priority: priority
                 )
             }
 
-            self.resolveOverlapsAndPublish(maxDet: maxDet, clsThreshold: clsThreshold, priority: priority)
+            // Resolve and publish on main
+            DispatchQueue.main.async { [weak self] in
+                self?.resolveOverlapsAndPublish(maxDet: maxDet, clsThreshold: clsThreshold, priority: priority)
+            }
         }
     }
 
@@ -272,9 +283,7 @@ class VisionService: ObservableObject {
             self.handleDetectionResults(request: request, threshold: threshold, inputSize: 640, maxDet: maxDet)
 
             let elapsed = CFAbsoluteTimeGetCurrent() - startTime
-            DispatchQueue.main.async {
-                self.internalDetMs = 0.05 * (elapsed * 1000) + 0.95 * self.internalDetMs
-            }
+            self.internalDetMs = 0.05 * (elapsed * 1000) + 0.95 * self.internalDetMs
         }
 
         request.imageCropAndScaleOption = .scaleFill
@@ -334,11 +343,13 @@ class VisionService: ObservableObject {
 
     // MARK: - Per-Object Crop Classification
 
-    private func dispatchPerObjectClassification(
+    nonisolated private func performPerObjectClassification(
         pixelBuffer: CVPixelBuffer,
         clsThreshold: Float,
         priority: Float
     ) {
+        // Already on detectionQueue — run classification synchronously to avoid
+        // re-dispatching and keeping pixelBuffer alive across queue hops
         trackingLock.lock()
         let objectsToClassify = Array(trackedObjects.values)
             .filter { $0.confidence > 0.3 }
@@ -348,13 +359,11 @@ class VisionService: ObservableObject {
         guard !objectsToClassify.isEmpty else { return }
 
         for tracked in objectsToClassify {
-            detectionQueue.async { [weak self] in
-                self?.classifyObjectCrop(
-                    from: pixelBuffer,
-                    bbox: tracked.boundingBox,
-                    objectID: tracked.id
-                )
-            }
+            classifyObjectCrop(
+                from: pixelBuffer,
+                bbox: tracked.boundingBox,
+                objectID: tracked.id
+            )
         }
     }
 
@@ -402,15 +411,13 @@ class VisionService: ObservableObject {
                 self.clsCache[objectID] = ClsCacheEntry(
                     label: top.identifier,
                     confidence: top.confidence,
-                    timestamp: Date()
+                    timestamp: CFAbsoluteTimeGetCurrent()
                 )
                 self.clsCacheLock.unlock()
             }
 
             let elapsed = CFAbsoluteTimeGetCurrent() - startTime
-            DispatchQueue.main.async {
-                self.internalClsMs = 0.05 * (elapsed * 1000) + 0.95 * self.internalClsMs
-            }
+            self.internalClsMs = 0.05 * (elapsed * 1000) + 0.95 * self.internalClsMs
         }
 
         request.imageCropAndScaleOption = .scaleFill
@@ -434,10 +441,15 @@ class VisionService: ObservableObject {
             iou(tracked.boundingBox, boundingBox) > 0.3
         }
 
+        let now = CFAbsoluteTimeGetCurrent()
+
         if let existing = existingObject {
             let newCenter = CGPoint(x: boundingBox.midX, y: boundingBox.midY)
             if let prevCenter = trackedObjects[existing.id]?.previousCenter {
-                let dt = Date().timeIntervalSince(existing.lastSeen)
+                lastSeenTimesLock.lock()
+                let lastSeen = lastSeenTimes[existing.id] ?? now
+                lastSeenTimesLock.unlock()
+                let dt = now - lastSeen
                 if dt > 0 && dt < 1.0 {
                     let vx = (newCenter.x - prevCenter.x) / CGFloat(dt)
                     let vy = (newCenter.y - prevCenter.y) / CGFloat(dt)
@@ -447,10 +459,13 @@ class VisionService: ObservableObject {
 
             trackedObjects[existing.id]?.boundingBox = boundingBox
             trackedObjects[existing.id]?.confidence = confidence
-            trackedObjects[existing.id]?.lastSeen = Date()
             trackedObjects[existing.id]?.emoji = emoji
             trackedObjects[existing.id]?.label = label
             trackedObjects[existing.id]?.previousCenter = newCenter
+
+            lastSeenTimesLock.lock()
+            lastSeenTimes[existing.id] = now
+            lastSeenTimesLock.unlock()
         } else if trackedObjects.count < 100 {
             let id = UUID()
             let center = CGPoint(x: boundingBox.midX, y: boundingBox.midY)
@@ -458,22 +473,31 @@ class VisionService: ObservableObject {
                 id: id, label: label,
                 boundingBox: boundingBox,
                 confidence: confidence,
-                emoji: emoji, lastSeen: Date(),
+                emoji: emoji,
                 previousCenter: center
             )
+
+            lastSeenTimesLock.lock()
+            lastSeenTimes[id] = now
+            lastSeenTimesLock.unlock()
         }
     }
 
     // MARK: - Helper Methods
 
-    private func cleanupOldObjects() {
+    private func cleanupOldObjects(now: CFAbsoluteTime) {
         trackingLock.lock()
         defer { trackingLock.unlock() }
 
-        let now = Date()
-        trackedObjects = trackedObjects.filter { _, tracked in
-            now.timeIntervalSince(tracked.lastSeen) < objectLifetime
+        lastSeenTimesLock.lock()
+        trackedObjects = trackedObjects.filter { id, tracked in
+            let lastSeen = lastSeenTimes[id] ?? now
+            return (now - lastSeen) < objectLifetime
         }
+        // Remove stale entries from lastSeenTimes
+        let validIDs = Set(trackedObjects.keys)
+        lastSeenTimes = lastSeenTimes.filter { validIDs.contains($0.key) }
+        lastSeenTimesLock.unlock()
     }
 
     private var internalClsCached: Int = 0
@@ -482,9 +506,9 @@ class VisionService: ObservableObject {
         clsCacheLock.lock()
         defer { clsCacheLock.unlock() }
 
-        let now = Date()
+        let now = CFAbsoluteTimeGetCurrent()
         clsCache = clsCache.filter { _, entry in
-            now.timeIntervalSince(entry.timestamp) < 2.0
+            (now - entry.timestamp) < 2.0
         }
         internalClsCached = clsCache.count
     }
@@ -582,7 +606,6 @@ private struct TrackedObject {
     var boundingBox: CGRect
     var confidence: Float
     var emoji: String
-    var lastSeen: Date
     var classificationLabel: String?
     var velocity: CGPoint = .zero
     var previousCenter: CGPoint?
@@ -591,5 +614,5 @@ private struct TrackedObject {
 private struct ClsCacheEntry {
     let label: String
     let confidence: Float
-    let timestamp: Date
+    let timestamp: CFAbsoluteTime
 }

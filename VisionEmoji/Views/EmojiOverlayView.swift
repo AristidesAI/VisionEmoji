@@ -23,6 +23,7 @@ struct EmojiOverlayView: View {
                 }
             }
             .frame(width: geometry.size.width, height: geometry.size.height)
+            .drawingGroup() // Metal-accelerated off-screen rendering for overlay compositing
         }
     }
 }

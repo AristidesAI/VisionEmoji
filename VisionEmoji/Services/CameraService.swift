@@ -230,8 +230,8 @@ private final class CameraDelegate: NSObject, AVCaptureVideoDataOutputSampleBuff
             return
         }
 
-        Task { @MainActor in
-            self.onFrameProcessed?(pixelBuffer)
-        }
+        // Deliver frames directly on the video output queue — no main-thread hop.
+        // VisionService.processFrame() is nonisolated and dispatches to detectionQueue.
+        onFrameProcessed?(pixelBuffer)
     }
 }
