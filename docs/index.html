@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>VisionEmoji — Real-Time Emoji Object Detection</title>
+  <meta name="description" content="Point your camera at anything and watch emojis appear in real time — powered by on-device AI with YOLO26 and CoreML." />
+  <link rel="icon" href="../VisionEmoji/Assets.xcassets/AppIcon.appiconset/Icon-iOS-Default-1024x1024@1x.png" type="image/png" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- Ambient background glow -->
+  <div class="ambient-glow"></div>
+
+  <!-- ── Navigation ──────────────────────── -->
+  <nav class="nav">
+    <div class="container">
+      <a href="#" class="nav-brand">
+        <img src="../VisionEmoji/Assets.xcassets/AppIcon.appiconset/Icon-iOS-Default-1024x1024@1x.png" alt="VisionEmoji Icon" />
+        VisionEmoji
+      </a>
+      <ul class="nav-links">
+        <li><a href="#features">Features</a></li>
+        <li><a href="#screenshots">Screenshots</a></li>
+        <li><a href="#architecture">How It Works</a></li>
+        <li><a href="#tech">Tech Stack</a></li>
+        <li><a href="#privacy">Privacy</a></li>
+        <li><a href="https://github.com/aristideslintzeris/VisionEmoji" target="_blank">GitHub</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <!-- ── Hero ────────────────────────────── -->
+  <section class="hero">
+    <div class="hero-content">
+      <img
+        class="hero-icon"
+        src="../VisionEmoji/Assets.xcassets/AppIcon.appiconset/Icon-iOS-Default-1024x1024@1x.png"
+        alt="VisionEmoji App Icon"
+      />
+      <div class="hero-emoji-ring">🐕 🚗 ☕ 🍕 📱 🪑 💻 🐈 ✈️ 🎸</div>
+      <h1>VisionEmoji</h1>
+      <p>
+        Point your camera at anything and watch emojis appear in real time.
+        Powered by on-device YOLO26 AI — no internet, no data collection, pure magic.
+      </p>
+      <div class="hero-badges">
+        <span class="badge badge-accent">🧠 100% On-Device AI</span>
+        <span class="badge">📷 Real-Time Detection</span>
+        <span class="badge">🔒 Zero Data Collection</span>
+        <span class="badge">⚡ Apple Neural Engine</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Features ────────────────────────── -->
+  <section class="section" id="features">
+    <div class="container">
+      <h2 class="section-title">✨ Features</h2>
+      <p class="section-subtitle">
+        Advanced computer vision meets playful emoji overlays — all running at blazing speed on your iPhone.
+      </p>
+      <div class="features-grid">
+
+        <div class="feature-card">
+          <div class="feature-emoji">🎯</div>
+          <h3>80+ Object Categories</h3>
+          <p>Detects people, animals, vehicles, food, electronics, furniture, and more using the COCO dataset with YOLO26m.</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-emoji">🔬</div>
+          <h3>1,000+ Classifications</h3>
+          <p>A secondary YOLO26m-cls model classifies each detected object against 1,000 ImageNet categories for precise emoji matching.</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-emoji">⚡</div>
+          <h3>Real-Time Performance</h3>
+          <p>Runs at interactive frame rates on the Apple Neural Engine. Kalman filter smoothing keeps emojis stable and jitter-free.</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-emoji">📷</div>
+          <h3>Ultrawide Camera</h3>
+          <p>Uses the ultrawide lens for maximum field of view — see more objects, get more emojis.</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-emoji">🔒</div>
+          <h3>Privacy First</h3>
+          <p>Everything happens on your device. No images, no data, nothing ever leaves your phone. Period.</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-emoji">🛠️</div>
+          <h3>Debug Mode</h3>
+          <p>Toggle bounding boxes, classification labels, and confidence scores to see exactly what the AI sees.</p>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Screenshots ─────────────────────── -->
+  <section class="section" id="screenshots" style="background: var(--bg-secondary);">
+    <div class="container">
+      <h2 class="section-title">📸 In Action</h2>
+      <p class="section-subtitle">
+        Real screenshots from VisionEmoji detecting objects and overlaying emojis live.
+      </p>
+      <div class="screenshots-wrapper">
+        <div class="screenshot">
+          <img src="../screenshots/IMG_6328.PNG" alt="VisionEmoji screenshot — multiple objects detected" />
+        </div>
+        <div class="screenshot">
+          <img src="../screenshots/IMG_6329.PNG" alt="VisionEmoji screenshot — emoji overlay close-up" />
+        </div>
+        <div class="screenshot">
+          <img src="../screenshots/IMG_6338.PNG" alt="VisionEmoji screenshot — settings and debug view" />
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Architecture ────────────────────── -->
+  <section class="section" id="architecture">
+    <div class="container">
+      <h2 class="section-title">⚙️ How It Works</h2>
+      <p class="section-subtitle">
+        A real-time pipeline from camera frame to emoji overlay — all on-device.
+      </p>
+      <div class="architecture-flow">
+        <div class="arch-node">
+          <span class="arch-node-emoji">📷</span>
+          CameraService
+        </div>
+        <span class="arch-arrow">→</span>
+        <div class="arch-node">
+          <span class="arch-node-emoji">🧠</span>
+          YOLO26m Detect
+        </div>
+        <span class="arch-arrow">→</span>
+        <div class="arch-node">
+          <span class="arch-node-emoji">🔬</span>
+          YOLO26m-cls Classify
+        </div>
+        <span class="arch-arrow">→</span>
+        <div class="arch-node">
+          <span class="arch-node-emoji">📐</span>
+          Kalman Filter
+        </div>
+        <span class="arch-arrow">→</span>
+        <div class="arch-node">
+          <span class="arch-node-emoji">😀</span>
+          Emoji Overlay
+        </div>
+      </div>
+      <p style="text-align:center; color: var(--text-muted); max-width: 600px; margin: 0 auto; font-size: 0.9rem;">
+        CVPixelBuffer frames flow from the ultrawide camera through YOLO object detection,
+        per-object ImageNet classification, position smoothing, and finally rendered as
+        Apple emoji overlays in SwiftUI — all within milliseconds.
+      </p>
+    </div>
+  </section>
+
+  <!-- ── Tech Stack ──────────────────────── -->
+  <section class="section" id="tech" style="background: var(--bg-secondary);">
+    <div class="container">
+      <h2 class="section-title">🧰 Tech Stack</h2>
+      <p class="section-subtitle">
+        Built with cutting-edge Apple frameworks and state-of-the-art ML models.
+      </p>
+      <div class="tech-grid">
+        <a href="https://developer.apple.com/xcode/swiftui/" target="_blank" class="tech-item">
+          <span class="tech-icon">🎨</span>
+          <div class="tech-info">
+            <h4>SwiftUI</h4>
+            <p>Declarative UI framework</p>
+          </div>
+        </a>
+        <a href="https://developer.apple.com/documentation/coreml" target="_blank" class="tech-item">
+          <span class="tech-icon">🧠</span>
+          <div class="tech-info">
+            <h4>CoreML</h4>
+            <p>On-device ML inference</p>
+          </div>
+        </a>
+        <a href="https://developer.apple.com/documentation/vision" target="_blank" class="tech-item">
+          <span class="tech-icon">👁️</span>
+          <div class="tech-info">
+            <h4>Vision Framework</h4>
+            <p>Image analysis pipeline</p>
+          </div>
+        </a>
+        <a href="https://docs.ultralytics.com/models/yolo26/" target="_blank" class="tech-item">
+          <span class="tech-icon">🎯</span>
+          <div class="tech-info">
+            <h4>YOLO26m</h4>
+            <p>Object detection model</p>
+          </div>
+        </a>
+        <a href="https://docs.ultralytics.com/tasks/classify/" target="_blank" class="tech-item">
+          <span class="tech-icon">🔬</span>
+          <div class="tech-info">
+            <h4>YOLO26m-cls</h4>
+            <p>ImageNet classification</p>
+          </div>
+        </a>
+        <a href="https://developer.apple.com/documentation/avfoundation" target="_blank" class="tech-item">
+          <span class="tech-icon">📷</span>
+          <div class="tech-info">
+            <h4>AVFoundation</h4>
+            <p>Camera capture pipeline</p>
+          </div>
+        </a>
+        <a href="https://developer.apple.com/swift/" target="_blank" class="tech-item">
+          <span class="tech-icon">🐦</span>
+          <div class="tech-info">
+            <h4>Swift 5 + Concurrency</h4>
+            <p>Async/await, actors, Sendable</p>
+          </div>
+        </a>
+        <a href="https://developer.apple.com/documentation/combine" target="_blank" class="tech-item">
+          <span class="tech-icon">🔗</span>
+          <div class="tech-info">
+            <h4>Combine</h4>
+            <p>Reactive data streams</p>
+          </div>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Privacy ─────────────────────────── -->
+  <section class="section" id="privacy">
+    <div class="container">
+      <div class="privacy-card">
+        <div class="privacy-emoji">🔐</div>
+        <h3>Your Privacy Is Non-Negotiable</h3>
+        <p>
+          VisionEmoji processes everything on your device using the Apple Neural Engine.
+          No images, video, or detection data ever leave your phone. No accounts, no tracking, no ads.
+        </p>
+        <ul class="privacy-list">
+          <li>✅ 100% on-device processing</li>
+          <li>✅ No internet required</li>
+          <li>✅ No data collection</li>
+          <li>✅ No third-party analytics</li>
+          <li>✅ No accounts</li>
+          <li>✅ No ads</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Footer ──────────────────────────── -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-links">
+        <a href="https://github.com/aristideslintzeris/VisionEmoji" target="_blank">GitHub</a>
+        <a href="../PrivacyPolicy.md">Privacy Policy</a>
+        <a href="mailto:aristideslintzeris@icloud.com">Contact</a>
+      </div>
+      <p>© 2026 Aristides Lintzeris · Built with 🧠 CoreML + ❤️ SwiftUI</p>
+    </div>
+  </footer>
+
+</body>
+</html>
