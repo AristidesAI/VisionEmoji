@@ -177,10 +177,17 @@ body {
     position: absolute;
     bottom: -3rem;
     left: var(--x);
-    font-size: var(--size);
-    opacity: 0.18;
+    width: var(--size);
+    height: var(--size);
+    opacity: 0.35;
     animation: float-up var(--duration) var(--delay) linear infinite;
-    filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.15));
+    filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.2));
+}
+
+.floating-emoji img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
 }
 
 @keyframes float-up {
@@ -189,11 +196,11 @@ body {
         opacity: 0;
     }
     5% {
-        opacity: 0.18;
+        opacity: 0.35;
         transform: translateY(-5vh) rotate(18deg) scale(1);
     }
     90% {
-        opacity: 0.18;
+        opacity: 0.35;
     }
     100% {
         transform: translateY(-110vh) rotate(360deg) scale(0.8);
@@ -305,7 +312,13 @@ body {
 .hero-emoji {
     display: inline-block;
     animation: bounce 2s ease-in-out infinite;
-    font-size: 1.6rem;
+    vertical-align: middle;
+}
+
+.hero-emoji img {
+    width: 42px;
+    height: 42px;
+    object-fit: contain;
 }
 
 @keyframes bounce {
@@ -505,9 +518,14 @@ body {
 }
 
 .feature-icon {
-    font-size: 2.4rem;
     margin-bottom: 1rem;
     filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+}
+
+.feature-icon img {
+    width: 48px;
+    height: 48px;
+    object-fit: contain;
 }
 
 .feature-card h3 {
@@ -571,7 +589,14 @@ body {
 }
 
 .pill-icon {
-    font-size: 1.2rem;
+    display: inline-flex;
+    align-items: center;
+}
+
+.pill-icon img {
+    width: 24px;
+    height: 24px;
+    object-fit: contain;
 }
 
 /* ============================================
@@ -606,9 +631,21 @@ body {
 }
 
 .footer-emojis {
-    font-size: 1.4rem;
-    letter-spacing: 0.4rem;
-    opacity: 0.5;
+    display: flex;
+    justify-content: center;
+    gap: 0.8rem;
+    opacity: 0.6;
+}
+
+.footer-emojis img {
+    width: 32px;
+    height: 32px;
+    object-fit: contain;
+    transition: transform 0.3s ease;
+}
+
+.footer-emojis img:hover {
+    transform: scale(1.3);
 }
 
 /* ============================================

@@ -100,6 +100,26 @@ MIT © 2026 [Aristides Lintzeris](mailto:aristideslintzeris@icloud.com)
 
 <p align="center">
   Built with CoreML + SwiftUI
-  <br/><br/>
-  🙈 🐶 🚗 🍕 📱 🐱 ✈️ 🌻 🎸 🏀
+</p>
+
+<p align="center">
+  <img src="3d-emojis/see-no-evil-monkey.png" width="36" alt="see no evil" />
+  &nbsp;
+  <img src="3d-emojis/dog-face.png" width="36" alt="dog" />
+  &nbsp;
+  <img src="3d-emojis/automobile.png" width="36" alt="car" />
+  &nbsp;
+  <img src="3d-emojis/pizza.png" width="36" alt="pizza" />
+  &nbsp;
+  <img src="3d-emojis/mobile-phone.png" width="36" alt="phone" />
+  &nbsp;
+  <img src="3d-emojis/cat-face.png" width="36" alt="cat" />
+  &nbsp;
+  <img src="3d-emojis/airplane.png" width="36" alt="airplane" />
+  &nbsp;
+  <img src="3d-emojis/sunflower.png" width="36" alt="sunflower" />
+  &nbsp;
+  <img src="3d-emojis/guitar.png" width="36" alt="guitar" />
+  &nbsp;
+  <img src="3d-emojis/basketball.png" width="36" alt="basketball" />
 </p>
