@@ -22,6 +22,12 @@
   <a href="PrivacyPolicy.md"><img src="https://img.shields.io/badge/Privacy-No%20Data%20Collected-brightgreen" alt="Privacy"></a>
 </p>
 
+<p align="center">
+  <a href="https://apps.apple.com/us/app/vision-emoji/id6759308509">
+    <img src="https://tools.applemediaservices.com/api/badges/download-on-the-app-store/black/en-us?size=250x83" alt="Download on the App Store" height="60" />
+  </a>
+</p>
+
 ---
 
 ## Screenshots

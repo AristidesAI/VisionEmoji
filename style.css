@@ -215,6 +215,22 @@ body {
     box-shadow: 0 0 20px var(--glow);
 }
 
+.app-store-link {
+    display: inline-block;
+    margin-top: 1.8rem;
+    transition: all 0.3s ease;
+}
+
+.app-store-link img {
+    height: 54px;
+    width: auto;
+}
+
+.app-store-link:hover {
+    transform: translateY(-2px);
+    filter: brightness(0.3);
+}
+
 /* ============================================
    Pipeline / How It Works
    ============================================ */
