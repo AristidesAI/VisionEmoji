@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VisionEmoji — Real-Time AI Emoji Overlay for iOS</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="icon" href="VisionEmoji/Assets.xcassets/AppIcon.appiconset/Icon-iOS-Default-1024x1024@1x.png" type="image/png">
+</head>
+<body>
+    <!-- Floating Emoji Background -->
+    <div class="emoji-bg" aria-hidden="true">
+        <span class="floating-emoji" style="--delay: 0s; --x: 5%; --duration: 18s; --size: 2.2rem;">🐶</span>
+        <span class="floating-emoji" style="--delay: 1.2s; --x: 15%; --duration: 22s; --size: 1.8rem;">🚗</span>
+        <span class="floating-emoji" style="--delay: 2.5s; --x: 25%; --duration: 16s; --size: 2.5rem;">🙈</span>
+        <span class="floating-emoji" style="--delay: 0.8s; --x: 35%; --duration: 20s; --size: 2rem;">🍕</span>
+        <span class="floating-emoji" style="--delay: 3.5s; --x: 45%; --duration: 19s; --size: 1.6rem;">📱</span>
+        <span class="floating-emoji" style="--delay: 1.8s; --x: 55%; --duration: 24s; --size: 2.4rem;">🐱</span>
+        <span class="floating-emoji" style="--delay: 4.2s; --x: 65%; --duration: 17s; --size: 1.9rem;">✈️</span>
+        <span class="floating-emoji" style="--delay: 0.3s; --x: 75%; --duration: 21s; --size: 2.1rem;">🎸</span>
+        <span class="floating-emoji" style="--delay: 2.8s; --x: 85%; --duration: 15s; --size: 2.6rem;">🌻</span>
+        <span class="floating-emoji" style="--delay: 5s; --x: 92%; --duration: 23s; --size: 1.7rem;">🏀</span>
+        <span class="floating-emoji" style="--delay: 3s; --x: 10%; --duration: 26s; --size: 2rem;">🎨</span>
+        <span class="floating-emoji" style="--delay: 6s; --x: 30%; --duration: 18s; --size: 1.5rem;">🦊</span>
+        <span class="floating-emoji" style="--delay: 4.8s; --x: 50%; --duration: 20s; --size: 2.3rem;">🍎</span>
+        <span class="floating-emoji" style="--delay: 1.5s; --x: 70%; --duration: 25s; --size: 1.8rem;">⚡</span>
+        <span class="floating-emoji" style="--delay: 7s; --x: 88%; --duration: 16s; --size: 2.2rem;">🎯</span>
+        <span class="floating-emoji" style="--delay: 5.5s; --x: 40%; --duration: 22s; --size: 2rem;">🧠</span>
+    </div>
+
+    <!-- Hero Section -->
+    <header class="hero">
+        <div class="hero-content">
+            <img
+                src="VisionEmoji/Assets.xcassets/AppIcon.appiconset/Icon-iOS-Default-1024x1024@1x.png"
+                alt="VisionEmoji App Icon"
+                class="app-icon"
+            >
+            <h1 class="hero-title">
+                Vision<span class="gradient-text">Emoji</span>
+            </h1>
+            <p class="hero-subtitle">
+                Real-time AI-powered emoji overlay for iOS
+                <span class="hero-emoji">🙈</span>
+            </p>
+            <p class="hero-description">
+                Point your camera at the world and watch objects transform into emojis instantly.
+                Powered by YOLO26 + CoreML with on-device inference.
+            </p>
+            <div class="tech-badges">
+                <span class="badge">iOS 26</span>
+                <span class="badge">Swift</span>
+                <span class="badge">SwiftUI</span>
+                <span class="badge">CoreML</span>
+                <span class="badge">YOLO26</span>
+                <span class="badge">Vision</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- How It Works -->
+    <section class="section how-it-works">
+        <h2 class="section-title">How It Works</h2>
+        <p class="section-subtitle">A blazing-fast 4-step pipeline running entirely on-device</p>
+        <div class="pipeline">
+            <div class="pipeline-step">
+                <div class="step-icon">📷</div>
+                <div class="step-label">Camera</div>
+                <div class="step-detail">Ultrawide AVCaptureSession delivers raw CVPixelBuffer frames</div>
+            </div>
+            <div class="pipeline-arrow">→</div>
+            <div class="pipeline-step">
+                <div class="step-icon">🔍</div>
+                <div class="step-label">YOLO26m Detect</div>
+                <div class="step-detail">640x640 FP16 model detects up to 80 COCO object classes</div>
+            </div>
+            <div class="pipeline-arrow">→</div>
+            <div class="pipeline-step">
+                <div class="step-icon">🧠</div>
+                <div class="step-label">Classification</div>
+                <div class="step-detail">Per-object crop → YOLO26m-cls for 1000 ImageNet classes</div>
+            </div>
+            <div class="pipeline-arrow">→</div>
+            <div class="pipeline-step">
+                <div class="step-icon">✨</div>
+                <div class="step-label">Emoji Overlay</div>
+                <div class="step-detail">Kalman-filtered positions with smooth SwiftUI overlays</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Screenshots -->
+    <section class="section screenshots">
+        <h2 class="section-title">See It In Action</h2>
+        <p class="section-subtitle">Real screenshots from VisionEmoji running on iPhone</p>
+        <div class="screenshot-grid">
+            <div class="screenshot-card">
+                <img src="screenshots/IMG_6338.PNG" alt="Debug mode showing object detection with bounding boxes" loading="lazy">
+                <div class="screenshot-caption">Debug Mode — Bounding boxes with confidence scores</div>
+            </div>
+            <div class="screenshot-card">
+                <img src="screenshots/IMG_6328.PNG" alt="Object detection on desk items" loading="lazy">
+                <div class="screenshot-caption">Object Detection — Real-time desk scene analysis</div>
+            </div>
+            <div class="screenshot-card">
+                <img src="screenshots/IMG_6329.PNG" alt="Face and hand detection" loading="lazy">
+                <div class="screenshot-caption">Person Detection — Face and gesture recognition</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features -->
+    <section class="section features">
+        <h2 class="section-title">Features</h2>
+        <p class="section-subtitle">Everything runs on-device with zero cloud dependency</p>
+        <div class="features-grid">
+            <div class="feature-card">
+                <div class="feature-icon">⚡</div>
+                <h3>Real-Time Detection</h3>
+                <p>YOLO26m processes frames at up to 60 FPS with Neural Engine acceleration on Apple Silicon.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">🎯</div>
+                <h3>Dual-Model Pipeline</h3>
+                <p>YOLO26m detection + per-object crop classification blends COCO and ImageNet labels.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">🔒</div>
+                <h3>100% On-Device</h3>
+                <p>All inference runs locally via CoreML. No data ever leaves your iPhone.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">🎚️</div>
+                <h3>Configurable</h3>
+                <p>Adjust FPS, emoji scale, confidence thresholds, Kalman filter parameters, and label priority.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">📐</div>
+                <h3>Kalman Filtering</h3>
+                <p>Smooth position tracking with configurable process and measurement noise for stable overlays.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">🍎</div>
+                <h3>Native Apple Emojis</h3>
+                <p>Uses Apple's built-in emoji set rendered via NSAttributedString with NSCache optimization.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Tech Stack -->
+    <section class="section tech-stack">
+        <h2 class="section-title">Tech Stack</h2>
+        <div class="tech-pills">
+            <a href="https://swift.org" class="tech-pill" target="_blank" rel="noopener">
+                <span class="pill-icon">🔶</span> Swift
+            </a>
+            <a href="https://developer.apple.com/xcode/swiftui/" class="tech-pill" target="_blank" rel="noopener">
+                <span class="pill-icon">📱</span> SwiftUI
+            </a>
+            <a href="https://developer.apple.com/machine-learning/core-ml/" class="tech-pill" target="_blank" rel="noopener">
+                <span class="pill-icon">🧠</span> CoreML
+            </a>
+            <a href="https://developer.apple.com/documentation/vision" class="tech-pill" target="_blank" rel="noopener">
+                <span class="pill-icon">👁️</span> Vision
+            </a>
+            <a href="https://developer.apple.com/av-foundation/" class="tech-pill" target="_blank" rel="noopener">
+                <span class="pill-icon">🎥</span> AVFoundation
+            </a>
+            <a href="https://developer.apple.com/documentation/combine" class="tech-pill" target="_blank" rel="noopener">
+                <span class="pill-icon">🔗</span> Combine
+            </a>
+            <a href="https://docs.ultralytics.com/" class="tech-pill" target="_blank" rel="noopener">
+                <span class="pill-icon">🤖</span> YOLO26
+            </a>
+            <a href="https://coremltools.readme.io/" class="tech-pill" target="_blank" rel="noopener">
+                <span class="pill-icon">🔧</span> coremltools
+            </a>
+        </div>
+    </section>
+
+    <!-- Architecture -->
+    <section class="section architecture">
+        <h2 class="section-title">Architecture</h2>
+        <p class="section-subtitle">Clean pipeline architecture with separation of concerns</p>
+        <div class="arch-diagram">
+<pre>
+┌─────────────────────────────────────────────────────────────────┐
+│                        CameraService                            │
+│   AVCaptureSession → ultrawide camera → CVPixelBuffer frames    │
+└──────────────────────────────┬──────────────────────────────────┘
+                               │ onFrameProcessed callback
+                               ▼
+┌─────────────────────────────────────────────────────────────────┐
+│                        VisionService                            │
+│   ┌──────────────────┐    ┌───────────────────────────────┐     │
+│   │ YOLO26m Detect   │───▶│ Per-Object Crop Classification│     │
+│   │ 640×640 → [1,300,6]   │ 224×224 → ImageNet 1000      │     │
+│   └──────────────────┘    └───────────────────────────────┘     │
+│                    Label Blending (priority slider)              │
+└──────────────────────────────┬──────────────────────────────────┘
+                               │ [DetectionResult] via @Published
+                               ▼
+┌─────────────────────────────────────────────────────────────────┐
+│                     EmojiOverlayService                         │
+│          Kalman filter smoothing → [EmojiOverlay]               │
+└──────────────────────────────┬──────────────────────────────────┘
+                               │
+                               ▼
+┌─────────────────────────────────────────────────────────────────┐
+│                    SwiftUI Overlay Views                         │
+│            EmojiOverlayView → ContentView                       │
+└─────────────────────────────────────────────────────────────────┘
+</pre>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-content">
+            <p class="footer-credit">Made with ❤️ by <strong>Aristides Lintzeris</strong> & <strong>YOLO26</strong></p>
+            <p class="footer-sub">VisionEmoji — Turning the real world into emojis, one frame at a time.</p>
+            <div class="footer-emojis">🙈 🐶 🚗 🍕 📱 🐱 ✈️ 🌻 🎸 🏀</div>
+        </div>
+    </footer>
+</body>
+</html>
