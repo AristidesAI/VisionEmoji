@@ -1,22 +1,25 @@
 /* ============================================
    VisionEmoji — Website Styles
-   Dark theme with purple/pink gradient accents
+   Light theme with green accent (matching app icon)
    ============================================ */
 
 :root {
-    --bg-primary: #0a0a0f;
-    --bg-secondary: #12121a;
-    --bg-card: #1a1a2e;
-    --bg-card-hover: #222240;
-    --text-primary: #f0f0f5;
-    --text-secondary: #a0a0b8;
-    --text-muted: #6a6a80;
-    --gradient-start: #a855f7;
-    --gradient-mid: #ec4899;
-    --gradient-end: #f97316;
-    --border-color: rgba(168, 85, 247, 0.15);
-    --border-hover: rgba(168, 85, 247, 0.4);
-    --glow: rgba(168, 85, 247, 0.25);
+    --bg-primary: #ffffff;
+    --bg-secondary: #f7f9f7;
+    --bg-card: #f0f5f0;
+    --bg-card-hover: #e5ede5;
+    --text-primary: #1a1a1a;
+    --text-secondary: #555555;
+    --text-muted: #888888;
+    --green: #3a8c3f;
+    --green-dark: #2d6e31;
+    --green-light: #5cb85c;
+    --gradient-start: #3a8c3f;
+    --gradient-mid: #5cb85c;
+    --gradient-end: #8fd48f;
+    --border-color: rgba(58, 140, 63, 0.15);
+    --border-hover: rgba(58, 140, 63, 0.4);
+    --glow: rgba(58, 140, 63, 0.2);
 }
 
 *, *::before, *::after {
@@ -55,9 +58,8 @@ body {
     bottom: -3rem;
     left: var(--x);
     font-size: var(--size);
-    opacity: 0.08;
+    opacity: 0.12;
     animation: float-up var(--duration) var(--delay) linear infinite;
-    filter: blur(0.5px);
 }
 
 @keyframes float-up {
@@ -66,10 +68,10 @@ body {
         opacity: 0;
     }
     5% {
-        opacity: 0.08;
+        opacity: 0.12;
     }
     90% {
-        opacity: 0.08;
+        opacity: 0.12;
     }
     100% {
         transform: translateY(-110vh) rotate(360deg);
@@ -94,7 +96,7 @@ body {
     font-weight: 800;
     text-align: center;
     margin-bottom: 0.5rem;
-    background: linear-gradient(135deg, var(--gradient-start), var(--gradient-mid));
+    background: linear-gradient(135deg, var(--green-dark), var(--green-light));
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
@@ -121,8 +123,8 @@ body {
     text-align: center;
     padding: 2rem 1.5rem;
     background:
-        radial-gradient(ellipse 60% 50% at 50% 0%, rgba(168, 85, 247, 0.12) 0%, transparent 70%),
-        radial-gradient(ellipse 40% 40% at 80% 80%, rgba(236, 72, 153, 0.08) 0%, transparent 70%);
+        radial-gradient(ellipse 60% 50% at 50% 0%, rgba(58, 140, 63, 0.06) 0%, transparent 70%),
+        radial-gradient(ellipse 40% 40% at 80% 80%, rgba(92, 184, 92, 0.04) 0%, transparent 70%);
 }
 
 .hero-content {
@@ -134,15 +136,15 @@ body {
     height: 140px;
     border-radius: 28px;
     box-shadow:
-        0 0 40px rgba(168, 85, 247, 0.3),
-        0 20px 60px rgba(0, 0, 0, 0.5);
+        0 0 30px rgba(58, 140, 63, 0.2),
+        0 20px 60px rgba(0, 0, 0, 0.1);
     margin-bottom: 2rem;
     animation: icon-glow 4s ease-in-out infinite alternate;
 }
 
 @keyframes icon-glow {
-    0% { box-shadow: 0 0 40px rgba(168, 85, 247, 0.3), 0 20px 60px rgba(0, 0, 0, 0.5); }
-    100% { box-shadow: 0 0 60px rgba(236, 72, 153, 0.4), 0 20px 60px rgba(0, 0, 0, 0.5); }
+    0% { box-shadow: 0 0 30px rgba(58, 140, 63, 0.2), 0 20px 60px rgba(0, 0, 0, 0.1); }
+    100% { box-shadow: 0 0 50px rgba(92, 184, 92, 0.3), 0 20px 60px rgba(0, 0, 0, 0.1); }
 }
 
 .hero-title {
@@ -151,10 +153,11 @@ body {
     letter-spacing: -0.03em;
     line-height: 1.1;
     margin-bottom: 1rem;
+    color: var(--text-primary);
 }
 
 .gradient-text {
-    background: linear-gradient(135deg, var(--gradient-start), var(--gradient-mid), var(--gradient-end));
+    background: linear-gradient(135deg, var(--green-dark), var(--green-light), var(--gradient-end));
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
@@ -199,15 +202,15 @@ body {
     border-radius: 100px;
     font-size: 0.8rem;
     font-weight: 600;
-    background: rgba(168, 85, 247, 0.1);
+    background: rgba(58, 140, 63, 0.08);
     border: 1px solid var(--border-color);
-    color: var(--gradient-start);
+    color: var(--green);
     letter-spacing: 0.02em;
     transition: all 0.3s ease;
 }
 
 .badge:hover {
-    background: rgba(168, 85, 247, 0.2);
+    background: rgba(58, 140, 63, 0.15);
     border-color: var(--border-hover);
     box-shadow: 0 0 20px var(--glow);
 }
@@ -218,7 +221,7 @@ body {
 
 .how-it-works {
     background:
-        radial-gradient(ellipse 50% 40% at 20% 50%, rgba(168, 85, 247, 0.06) 0%, transparent 70%);
+        radial-gradient(ellipse 50% 40% at 20% 50%, rgba(58, 140, 63, 0.04) 0%, transparent 70%);
 }
 
 .pipeline {
@@ -243,7 +246,7 @@ body {
     background: var(--bg-card-hover);
     border-color: var(--border-hover);
     transform: translateY(-4px);
-    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.08);
 }
 
 .step-icon {
@@ -255,6 +258,7 @@ body {
     font-size: 1rem;
     font-weight: 700;
     margin-bottom: 0.5rem;
+    color: var(--text-primary);
 }
 
 .step-detail {
@@ -265,7 +269,7 @@ body {
 
 .pipeline-arrow {
     font-size: 1.6rem;
-    color: var(--gradient-start);
+    color: var(--green);
     align-self: center;
     margin-top: -1rem;
     font-weight: 700;
@@ -278,7 +282,7 @@ body {
 
 .screenshots {
     background:
-        radial-gradient(ellipse 50% 50% at 80% 30%, rgba(236, 72, 153, 0.06) 0%, transparent 70%);
+        radial-gradient(ellipse 50% 50% at 80% 30%, rgba(92, 184, 92, 0.04) 0%, transparent 70%);
 }
 
 .screenshot-grid {
@@ -298,7 +302,7 @@ body {
 .screenshot-card:hover {
     transform: translateY(-8px) scale(1.02);
     border-color: var(--border-hover);
-    box-shadow: 0 20px 60px rgba(168, 85, 247, 0.15);
+    box-shadow: 0 20px 60px rgba(58, 140, 63, 0.1);
 }
 
 .screenshot-card img {
@@ -342,7 +346,7 @@ body {
     background: var(--bg-card-hover);
     border-color: var(--border-hover);
     transform: translateY(-4px);
-    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.08);
 }
 
 .feature-icon {
@@ -354,6 +358,7 @@ body {
     font-size: 1.1rem;
     font-weight: 700;
     margin-bottom: 0.6rem;
+    color: var(--text-primary);
 }
 
 .feature-card p {
@@ -396,10 +401,10 @@ body {
 
 .tech-pill:hover {
     background: var(--bg-card-hover);
-    border-color: var(--gradient-start);
+    border-color: var(--green);
     box-shadow: 0 0 25px var(--glow);
     transform: translateY(-2px);
-    color: var(--gradient-start);
+    color: var(--green);
 }
 
 .pill-icon {
@@ -412,7 +417,7 @@ body {
 
 .architecture {
     background:
-        radial-gradient(ellipse 40% 40% at 50% 60%, rgba(168, 85, 247, 0.05) 0%, transparent 70%);
+        radial-gradient(ellipse 40% 40% at 50% 60%, rgba(58, 140, 63, 0.03) 0%, transparent 70%);
 }
 
 .arch-diagram {
@@ -442,16 +447,17 @@ body {
     text-align: center;
     padding: 4rem 1.5rem 3rem;
     border-top: 1px solid var(--border-color);
-    background: linear-gradient(180deg, transparent 0%, rgba(168, 85, 247, 0.03) 100%);
+    background: linear-gradient(180deg, transparent 0%, rgba(58, 140, 63, 0.03) 100%);
 }
 
 .footer-credit {
     font-size: 1.05rem;
     margin-bottom: 0.5rem;
+    color: var(--text-primary);
 }
 
 .footer-credit strong {
-    background: linear-gradient(135deg, var(--gradient-start), var(--gradient-mid));
+    background: linear-gradient(135deg, var(--green-dark), var(--green-light));
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
