@@ -14,12 +14,12 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/iOS-26.2-blue?logo=apple&logoColor=white" alt="iOS 26.2">
-  <img src="https://img.shields.io/badge/Swift-5-orange?logo=swift&logoColor=white" alt="Swift 5">
-  <img src="https://img.shields.io/badge/Xcode-17-blue?logo=xcode&logoColor=white" alt="Xcode 17">
-  <img src="https://img.shields.io/badge/CoreML-FP16-green?logo=apple&logoColor=white" alt="CoreML">
-  <img src="https://img.shields.io/badge/AI-On--Device-brightgreen" alt="On-Device AI" />
-  <img src="https://img.shields.io/badge/Privacy-No%20Data%20Collected-brightgreen" alt="Privacy" />
+  <a href="https://developer.apple.com/ios/"><img src="https://img.shields.io/badge/iOS-26.2-blue?logo=apple&logoColor=white" alt="iOS 26.2"></a>
+  <a href="https://developer.apple.com/swift/"><img src="https://img.shields.io/badge/Swift-5-orange?logo=swift&logoColor=white" alt="Swift 5"></a>
+  <a href="https://developer.apple.com/xcode/"><img src="https://img.shields.io/badge/Xcode-17-blue?logo=xcode&logoColor=white" alt="Xcode 17"></a>
+  <a href="https://developer.apple.com/documentation/coreml"><img src="https://img.shields.io/badge/CoreML-FP16-green?logo=apple&logoColor=white" alt="CoreML"></a>
+  <a href="https://developer.apple.com/machine-learning/"><img src="https://img.shields.io/badge/AI-On--Device-brightgreen" alt="On-Device AI"></a>
+  <a href="PrivacyPolicy.md"><img src="https://img.shields.io/badge/Privacy-No%20Data%20Collected-brightgreen" alt="Privacy"></a>
 </p>
 
 ---
