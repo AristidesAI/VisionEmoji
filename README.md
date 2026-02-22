@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="VisionEmoji/Assets.xcassets/AppIcon.appiconset/Icon-iOS-Default-1024x1024@1x.png" width="180" alt="VisionEmoji App Icon" style="border-radius: 36px;" />
+  <img src="seenoevil Exports/seenoevil-iOS-Default-1024x1024@1x.png" width="180" alt="VisionEmoji App Icon" style="border-radius: 36px;" />
 </p>
 
 <h1 align="center">VisionEmoji</h1>
