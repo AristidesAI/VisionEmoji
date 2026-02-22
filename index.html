@@ -68,29 +68,80 @@
     <section class="section screenshots">
         <h2 class="section-title">See It In Action</h2>
         <p class="section-subtitle">Real screenshots from VisionEmoji running on iPhone</p>
-        <div class="screenshot-grid">
-            <div class="screenshot-card">
-                <img src="screenshots/IMG_6377.PNG" alt="Dog detection with emoji overlay" loading="lazy">
-                <div class="screenshot-caption">Pet Detection — Shih-Tzu classified with emoji overlay</div>
+        <div class="slideshow">
+            <div class="slideshow-track">
+                <div class="slide active">
+                    <div class="slide-card">
+                        <img src="screenshots/IMG_6377.PNG" alt="Dog detection with emoji overlay">
+                        <div class="slide-caption">Pet Detection — Shih-Tzu classified with emoji overlay</div>
+                    </div>
+                </div>
+                <div class="slide">
+                    <div class="slide-card">
+                        <img src="screenshots/IMG_6341.PNG" alt="Living room scene with dog and couch detection">
+                        <div class="slide-caption">Room Scan — Dog, couch, and person detected</div>
+                    </div>
+                </div>
+                <div class="slide">
+                    <div class="slide-card">
+                        <img src="screenshots/IMG_6342.PNG" alt="Kitchen objects detection">
+                        <div class="slide-caption">Kitchen — Knives, bottle, and bowl identified</div>
+                    </div>
+                </div>
+                <div class="slide">
+                    <div class="slide-card">
+                        <img src="screenshots/IMG_6335.PNG" alt="Desk setup with multiple objects detected">
+                        <div class="slide-caption">Workspace — 9 objects tracked simultaneously</div>
+                    </div>
+                </div>
+                <div class="slide">
+                    <div class="slide-card">
+                        <img src="screenshots/IMG_6338.PNG" alt="Debug mode with bounding boxes and confidence scores">
+                        <div class="slide-caption">Debug Mode — Bounding boxes with confidence scores</div>
+                    </div>
+                </div>
             </div>
-            <div class="screenshot-card">
-                <img src="screenshots/IMG_6341.PNG" alt="Living room scene with dog and couch detection" loading="lazy">
-                <div class="screenshot-caption">Room Scan — Dog, couch, and person detected</div>
-            </div>
-            <div class="screenshot-card">
-                <img src="screenshots/IMG_6342.PNG" alt="Kitchen objects detection" loading="lazy">
-                <div class="screenshot-caption">Kitchen — Knives, bottle, and bowl identified</div>
-            </div>
-            <div class="screenshot-card">
-                <img src="screenshots/IMG_6335.PNG" alt="Desk setup with multiple objects detected" loading="lazy">
-                <div class="screenshot-caption">Workspace — 9 objects tracked simultaneously</div>
-            </div>
-            <div class="screenshot-card">
-                <img src="screenshots/IMG_6338.PNG" alt="Debug mode with bounding boxes and confidence scores" loading="lazy">
-                <div class="screenshot-caption">Debug Mode — Bounding boxes with confidence scores</div>
-            </div>
+            <div class="slideshow-dots"></div>
         </div>
     </section>
+
+    <script>
+    (function() {
+        const slides = document.querySelectorAll('.slide');
+        const dotsContainer = document.querySelector('.slideshow-dots');
+        let current = 0;
+        let interval;
+
+        slides.forEach(function(_, i) {
+            const dot = document.createElement('button');
+            dot.className = 'dot' + (i === 0 ? ' active' : '');
+            dot.setAttribute('aria-label', 'Go to slide ' + (i + 1));
+            dot.addEventListener('click', function() { goTo(i); resetTimer(); });
+            dotsContainer.appendChild(dot);
+        });
+
+        var dots = document.querySelectorAll('.dot');
+
+        function goTo(index) {
+            slides[current].classList.remove('active');
+            dots[current].classList.remove('active');
+            current = index;
+            slides[current].classList.add('active');
+            dots[current].classList.add('active');
+        }
+
+        function next() {
+            goTo((current + 1) % slides.length);
+        }
+
+        function resetTimer() {
+            clearInterval(interval);
+            interval = setInterval(next, 3500);
+        }
+
+        resetTimer();
+    })();
+    </script>
 
     <!-- Features -->
     <section class="section features">
